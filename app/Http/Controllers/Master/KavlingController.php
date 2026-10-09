@@ -27,11 +27,20 @@ class KavlingController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $data = KavlingPeta::with('lokasi');
+            $data = KavlingPeta::with('lokasi')
+                ->select('kavling_peta.*')
+                ->leftJoin('lokasi_kavling as lokasi_urut', 'lokasi_urut.id', '=', 'kavling_peta.id_lokasi');
 
             if ($request->id_lokasi && $request->id_lokasi != 0) {
-                $data->where('id_lokasi', $request->id_lokasi);
+                $data->where('kavling_peta.id_lokasi', $request->id_lokasi);
             }
+
+            // Urut lokasi dulu, lalu prefix kode (A, B, ...) lalu nomornya (1, 2, ... 10)
+            $data->orderBy('lokasi_urut.nama_kavling')
+                ->orderByRaw("SUBSTRING_INDEX(kavling_peta.kode_kavling, '-', 1)")
+                ->orderByRaw("CAST(SUBSTRING_INDEX(kavling_peta.kode_kavling, '-', -1) AS UNSIGNED)")
+                ->orderBy('kavling_peta.kode_kavling')
+                ->orderBy('kavling_peta.id');
 
             return datatables()->of($data)
                 ->addIndexColumn()
