@@ -308,6 +308,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('admin/keuangan')->group(function () {
         Route::get('dashboard', [DashboardKeuanganController::class, 'index'])->name('dashboard-keuangan.index');
+        Route::get('dashboard/data', [DashboardKeuanganController::class, 'data'])->name('dashboard-keuangan.data');
         Route::get('dashboard/detail', [DashboardKeuanganController::class, 'detail'])->name('dashboard-keuangan.detail');
         Route::get('kwitansi-menunggu-owner', [KwitansiOwnerController::class, 'index'])->name('kwitansi-owner.index');
         Route::get('kwitansi-menunggu-owner/{id}', [KwitansiOwnerController::class, 'show'])->name('kwitansi-owner.show');
