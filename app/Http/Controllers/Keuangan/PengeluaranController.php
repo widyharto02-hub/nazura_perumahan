@@ -258,6 +258,12 @@ class PengeluaranController extends Controller
     {
         $data = Pengeluaran::findOrFail($id);
 
+        if ($data->app_source === 'PROYEK') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Transaksi ini berasal dari Modul Proyek dan hanya dapat diubah dari aplikasi Proyek.',
+            ], 403);
+        }
         $rules = [
             'tanggal' => 'required|date',
             'nominal' => 'required',
@@ -376,6 +382,13 @@ class PengeluaranController extends Controller
     public function destroy($id)
     {
         $data = Pengeluaran::findOrFail($id);
+
+        if ($data->app_source === 'PROYEK') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Transaksi ini berasal dari Modul Proyek dan hanya dapat diubah dari aplikasi Proyek.',
+            ], 403);
+        }
         if (! empty($data->lampiran) && file_exists(public_path('assets/keuangan/pengeluaran/' . $data->lampiran))) {
             unlink(public_path('assets/keuangan/pengeluaran/' . $data->lampiran));
         }

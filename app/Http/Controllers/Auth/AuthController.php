@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function postLogin(Request $request)
     {
         $rules = [
-            'username' => 'required|exists:users,username',
+            'username' => 'required|exists:users_perum,username',
             'password' => 'required',
         ];
 

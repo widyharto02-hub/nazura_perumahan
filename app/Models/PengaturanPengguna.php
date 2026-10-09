@@ -8,7 +8,7 @@ class PengaturanPengguna extends Model
 {
     use HasFactory;
 
-    protected $table = 'users';
+    protected $table = 'users_perum';
 
     protected $fillable = [
         'surname',
