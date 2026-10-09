@@ -35,7 +35,7 @@
                             </div>
 
                             <div class="card-body">
-                                <table class="table table-bordered w-100 table-striped data-table">
+                                <table class="table table-bordered w-100 small table-striped data-table">
                                     <thead>
                                         <tr>
                                             <th width="5%">No</th>
@@ -44,7 +44,7 @@
                                             <th>Marketing</th>
                                             <th>Perumahan</th>
                                             <th>Status Progres</th>
-                                            <th width="200px" class="text-center">Action</th>
+                                            <th width="250px" class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>

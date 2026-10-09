@@ -626,6 +626,13 @@ class PengajuanHoldController extends Controller
             'foto_pemohon.max'           => 'Foto pemohon maksimal 2 MB.',
         ]);
 
+        // NIK boleh ganda asalkan beda kavling: tolak jika NIK+kavling sudah ada di customer atau booking aktif
+        $nikGanda = Customer::where('nik', $request->nik)->where('id_kavling', $request->id_kavling)->exists()
+            || PengajuanHold::where('nik', $request->nik)->where('id_kavling', $request->id_kavling)->where('stt_reg', '!=', 3)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
+
         $kavling = KavlingPeta::find($request->id_kavling);
         if ($kavling && collect($kavling->rincian_biaya ?? [])->sum('nilai') <= 0) {
             return response()->json([
@@ -967,6 +974,13 @@ class PengajuanHoldController extends Controller
         ];
 
         $request->validate($rules, $messages);
+
+        // NIK boleh ganda asalkan beda kavling (kecualikan booking sendiri)
+        $nikGanda = Customer::where('nik', $request->nik)->where('id_kavling', $data->id_kavling)->exists()
+            || PengajuanHold::where('nik', $request->nik)->where('id_kavling', $data->id_kavling)->where('stt_reg', '!=', 3)->where('id', '!=', $data->id)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
 
         DB::beginTransaction();
         try {

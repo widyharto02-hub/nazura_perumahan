@@ -210,6 +210,12 @@ class CustomerController extends Controller
 
         $request->validate($rules, $messages);
 
+        // NIK boleh ganda asalkan beda kavling
+        $nikGanda = Customer::where('nik', $request->nik)->where('id_kavling', $request->id_kavling)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
+
         $kavling = KavlingPeta::find($request->id_kavling);
         if (! $kavling) {
             return response()->json(['errors' => ['id_kavling' => ['Kavling tidak ditemukan!']]], 422);
@@ -389,6 +395,12 @@ class CustomerController extends Controller
 
         $request->validate($rules, $messages);
 
+        // NIK boleh ganda asalkan beda kavling
+        $nikGanda = Customer::where('nik', $request->nik)->where('id_kavling', $request->id_kavling)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
+
         DB::beginTransaction();
         try {
 
@@ -496,6 +508,12 @@ class CustomerController extends Controller
         ];
 
         $request->validate($rules, $messages);
+
+        // NIK boleh ganda asalkan beda kavling (kecualikan data sendiri)
+        $nikGanda = Customer::where('nik', $request->nik)->where('id_kavling', $data->id_kavling)->where('id', '!=', $data->id)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
 
         DB::beginTransaction();
         try {
@@ -1021,9 +1039,16 @@ class CustomerController extends Controller
 
         $request->validate($rules, $messages);
 
+        $customer = Customer::findOrFail($data->id_customer);
+
+        // NIK boleh ganda asalkan beda kavling (kecualikan data sendiri)
+        $nikGanda = Customer::where('nik', $data->nik)->where('id_kavling', $customer->id_kavling)->where('id', '!=', $customer->id)->exists();
+        if ($nikGanda) {
+            return response()->json(['errors' => ['nik' => ['NIK ini sudah terdaftar pada kavling yang sama!']]], 422);
+        }
+
         DB::beginTransaction();
         try {
-            $customer = Customer::findOrFail($data->id_customer);
 
             $updateData = [
                 'nama_lengkap'      => $data->nama_lengkap,
