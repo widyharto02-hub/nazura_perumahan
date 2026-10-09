@@ -382,27 +382,27 @@ class PengajuanHoldController extends Controller
     {
         $data = PengajuanHold::findOrFail($id);
 
-        $fotoKtpRule = empty($data->foto_ktp) ? 'required|mimes:jpg,jpeg,png' : 'nullable|mimes:jpg,jpeg,png';
+        $fotoKtpRule = empty($data->foto_ktp) ? 'required|mimes:jpg,jpeg,png,pdf' : 'nullable|mimes:jpg,jpeg,png,pdf';
 
         $rules = [
             'foto_ktp'     => $fotoKtpRule,
-            'foto_npwp'    => 'nullable|mimes:jpg,jpeg,png',
-            'foto_kk'      => 'nullable|mimes:jpg,jpeg,png',
-            'foto_bpjs'    => 'nullable|mimes:jpg,jpeg,png',
-            'foto_ktp_p'   => 'nullable|mimes:jpg,jpeg,png',
+            'foto_npwp'    => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_kk'      => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_bpjs'    => 'nullable|mimes:jpg,jpeg,png,pdf',
+            'foto_ktp_p'   => 'nullable|mimes:jpg,jpeg,png,pdf',
             'file_bukti'   => 'nullable|mimes:jpg,jpeg,png,pdf',
-            'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png',
+            'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png,pdf',
         ];
 
         $messages = [
             'foto_ktp.required'  => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'     => 'Foto KTP harus berformat JPG atau PNG.',
-            'foto_npwp.mimes'    => 'Foto NPWP harus berformat JPG atau PNG.',
-            'foto_kk.mimes'      => 'Foto KK harus berformat JPG atau PNG.',
-            'foto_bpjs.mimes'    => 'Foto BPJS harus berformat JPG atau PNG.',
-            'foto_ktp_p.mimes'   => 'Foto KTP pasangan harus berformat JPG atau PNG.',
+            'foto_ktp.mimes'     => 'Foto KTP harus berformat JPG, PNG, atau PDF.',
+            'foto_npwp.mimes'    => 'Foto NPWP harus berformat JPG, PNG, atau PDF.',
+            'foto_kk.mimes'      => 'Foto KK harus berformat JPG, PNG, atau PDF.',
+            'foto_bpjs.mimes'    => 'Foto BPJS harus berformat JPG, PNG, atau PDF.',
+            'foto_ktp_p.mimes'   => 'Foto KTP pasangan harus berformat JPG, PNG, atau PDF.',
             'file_bukti.mimes'   => 'File bukti harus berformat JPG, PNG, atau PDF.',
-            'foto_pemohon.mimes' => 'Foto pemohon harus berformat JPG atau PNG.',
+            'foto_pemohon.mimes' => 'Foto pemohon harus berformat JPG, PNG, atau PDF.',
         ];
 
         $request->validate($rules, $messages);
@@ -575,14 +575,14 @@ class PengajuanHoldController extends Controller
             'jenis_perumahan'   => 'required',
             'jenis_pembelian'   => 'required',
             'sumber_prospek'    => 'required',
-            'foto_ktp'          => 'required|mimes:jpg,jpeg,png|max:2048',
-            'foto_npwp'         => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_kk'           => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_bpjs'         => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_ktp_p'        => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'file_bukti'        => 'required|mimes:jpg,jpeg,png|max:2048',
-            'file_sppr'         => 'nullable|mimes:jpg,jpeg,png|max:2048',
-            'foto_pemohon'      => 'nullable|mimes:jpg,jpeg,png|max:2048',
+            'foto_ktp'          => 'required|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto_npwp'         => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto_kk'           => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto_bpjs'         => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto_ktp_p'        => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+            'file_bukti'        => 'required|mimes:jpg,jpeg,png,pdf|max:2048',
+            'file_sppr'         => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+            'foto_pemohon'      => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
         ], [
             'nama_lengkap.required'      => 'Nama lengkap wajib diisi.',
             'nik.required'               => 'NIK wajib diisi.',
@@ -607,22 +607,22 @@ class PengajuanHoldController extends Controller
             'jenis_pembelian.required'   => 'Jenis Pembelian wajib dipilih.',
             'sumber_prospek.required'    => 'Sumber Prospek wajib dipilih.',
             'foto_ktp.required'          => 'Foto KTP wajib diunggah.',
-            'foto_ktp.mimes'             => 'Foto KTP harus berformat JPG atau PNG.',
+            'foto_ktp.mimes'             => 'Foto KTP harus berformat JPG, PNG, atau PDF.',
             'foto_ktp.max'               => 'Foto KTP maksimal 2 MB.',
-            'foto_npwp.mimes'            => 'Foto NPWP harus berformat JPG atau PNG.',
+            'foto_npwp.mimes'            => 'Foto NPWP harus berformat JPG, PNG, atau PDF.',
             'foto_npwp.max'              => 'Foto NPWP maksimal 2 MB.',
-            'foto_kk.mimes'              => 'Foto KK harus berformat JPG atau PNG.',
+            'foto_kk.mimes'              => 'Foto KK harus berformat JPG, PNG, atau PDF.',
             'foto_kk.max'                => 'Foto KK maksimal 2 MB.',
-            'foto_bpjs.mimes'            => 'Foto BPJS harus berformat JPG atau PNG.',
+            'foto_bpjs.mimes'            => 'Foto BPJS harus berformat JPG, PNG, atau PDF.',
             'foto_bpjs.max'              => 'Foto BPJS maksimal 2 MB.',
-            'foto_ktp_p.mimes'           => 'Foto KTP pasangan harus berformat JPG atau PNG.',
+            'foto_ktp_p.mimes'           => 'Foto KTP pasangan harus berformat JPG, PNG, atau PDF.',
             'foto_ktp_p.max'             => 'Foto KTP pasangan maksimal 2 MB.',
             'file_bukti.required'        => 'Bukti transfer wajib diunggah.',
-            'file_bukti.mimes'           => 'Bukti transfer harus berformat JPG atau PNG.',
+            'file_bukti.mimes'           => 'Bukti transfer harus berformat JPG, PNG, atau PDF.',
             'file_bukti.max'             => 'Bukti transfer maksimal 2 MB.',
-            'file_sppr.mimes'            => 'Bukti Proses Admin harus berformat JPG atau PNG.',
+            'file_sppr.mimes'            => 'Bukti Proses Admin harus berformat JPG, PNG, atau PDF.',
             'file_sppr.max'              => 'Bukti Proses Admin maksimal 2 MB.',
-            'foto_pemohon.mimes'         => 'Foto pemohon harus berformat JPG atau PNG.',
+            'foto_pemohon.mimes'         => 'Foto pemohon harus berformat JPG, PNG, atau PDF.',
             'foto_pemohon.max'           => 'Foto pemohon maksimal 2 MB.',
         ]);
 
@@ -735,10 +735,19 @@ class PengajuanHoldController extends Controller
 
         $filename   = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $filename   = preg_replace('/[^a-zA-Z0-9-_]/', '_', $filename);
+        $ext        = strtolower($file->getClientOriginalExtension());
+
+        // File PDF disimpan langsung tanpa konversi ke webp
+        if ($ext === 'pdf') {
+            $filename = $filename . '_' . time() . '.pdf';
+            $file->move($folder, $filename);
+
+            return $filename;
+        }
+
         $filename   = $filename . '_' . time() . '.webp';
         $outputPath = $folder . '/' . $filename;
 
-        $ext    = strtolower($file->getClientOriginalExtension());
         $source = null;
 
         switch ($ext) {
@@ -970,13 +979,13 @@ class PengajuanHoldController extends Controller
             ]));
 
             $uploadRules = [
-                'foto_ktp' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'foto_npwp' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'foto_kk' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'foto_bpjs' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'foto_ktp_p' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'file_bukti' => 'nullable|mimes:jpg,jpeg,png|max:2048',
-                'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png|max:2048',
+                'foto_ktp' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'foto_npwp' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'foto_kk' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'foto_bpjs' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'foto_ktp_p' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'file_bukti' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
+                'foto_pemohon' => 'nullable|mimes:jpg,jpeg,png,pdf|max:2048',
             ];
             $request->validate($uploadRules);
 

@@ -188,9 +188,9 @@
                                 <label class="col-sm-3 col-form-label fw-bold" for="fotoProses">Foto Kondisi</label>
                                 <div class="col-sm-8">
                                     <input type="file" class="form-control-file" id="fotoProses" name="fotoProses[]"
-                                        multiple accept=".jpg,.jpeg,.png" onchange="previewFoto(this)">
+                                        multiple accept=".jpg,.jpeg,.png,.pdf" onchange="previewFoto(this)">
                                     <small class="form-text text-muted">
-                                        Format: JPG, PNG, GIF. Maksimal 2MB
+                                        Format: JPG, PNG, atau PDF. Maksimal 2MB
                                     </small>
                                 </div>
                             </div>

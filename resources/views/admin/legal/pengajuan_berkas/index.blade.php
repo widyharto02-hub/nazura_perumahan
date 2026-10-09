@@ -167,7 +167,7 @@
                             <label class="col-sm-4 col-form-label">Percakapan WA</label>
                             <div class="col-sm-5">
                                 <input type="file" class="mb-2" id="percakapan_wa" name="percakapan_wa"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewPercakapanWa"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">

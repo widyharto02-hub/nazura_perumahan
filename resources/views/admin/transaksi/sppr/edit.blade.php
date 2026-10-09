@@ -44,12 +44,16 @@
                         <label>{{ $label }}</label>
                         <div class="attachment-preview mb-2">
                             @if(isset($lampiran[$label]))
-                                <img src="{{ asset('assets/customer/'.$lampiran[$label]) }}" class="img-thumbnail attachment-image" data-title="{{ $label }}" alt="{{ $label }}" style="width:100%; height:150px; object-fit:cover; cursor:zoom-in;">
+                                @if (Str::endsWith(strtolower($lampiran[$label]), ['.jpg', '.jpeg', '.png', '.webp']))
+                                    <img src="{{ asset('assets/customer/'.$lampiran[$label]) }}" class="img-thumbnail attachment-image" data-title="{{ $label }}" alt="{{ $label }}" style="width:100%; height:150px; object-fit:cover; cursor:zoom-in;">
+                                @else
+                                    <a href="{{ asset('assets/customer/'.$lampiran[$label]) }}" target="_blank" class="btn btn-sm btn-secondary">Lihat PDF</a>
+                                @endif
                             @else
                                 <span class="text-muted small">Belum ada lampiran</span>
                             @endif
                         </div>
-                        <input type="file" name="{{ $field }}" class="form-control-file" accept="image/*">
+                        <input type="file" name="{{ $field }}" class="form-control-file" accept=".jpg,.jpeg,.png,.pdf">
                     </div>
                 @endforeach
             </div>

@@ -178,7 +178,7 @@ class CustomerController extends Controller
             'jenis_perumahan'    => 'required',
             'jenis_pembelian'    => 'required',
             'sumber_prospek'     => 'required',
-            'foto_ktp'           => 'required|mimes:jpg,jpeg,png|max:2048',
+            'foto_ktp'           => 'required|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
 
         $messages = [
@@ -200,7 +200,7 @@ class CustomerController extends Controller
             'jenis_pembelian.required'   => 'Jenis pembelian wajib dipilih!',
             'sumber_prospek.required'    => 'Sumber Prospek wajib dipilih!',
             'foto_ktp.required'          => 'Foto KTP wajib diupload!',
-            'foto_ktp.mimes'             => 'Format foto KTP harus jpg, jpeg, atau png!',
+            'foto_ktp.mimes'             => 'Format foto KTP harus jpg, jpeg, png, atau pdf!',
             'foto_ktp.max'               => 'Ukuran foto KTP maksimal 2MB!',
         ];
 

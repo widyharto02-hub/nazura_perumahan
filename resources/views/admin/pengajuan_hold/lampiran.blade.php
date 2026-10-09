@@ -23,13 +23,18 @@
                                         <label class="col-sm-2 col-form-label">Foto Pemohon</label>
                                         <div class="col-sm-4">
                                             <input type="file" name="foto_pemohon" id="foto_pemohon"
-                                                accept=".jpg, .jpeg, .png">
+                                                accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoPemohon"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 140px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_pemohon)
+                                                    @if (Str::endsWith(strtolower($data->foto_pemohon), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_pemohon) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_pemohon) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif
@@ -43,13 +48,18 @@
 
                                         <label class="col-sm-2 col-form-label">Foto KTP</label>
                                         <div class="col-sm-4">
-                                            <input type="file" name="foto_ktp" id="foto_ktp" accept=".jpg, .jpeg, .png">
+                                            <input type="file" name="foto_ktp" id="foto_ktp" accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoKtp"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 250px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_ktp)
+                                                    @if (Str::endsWith(strtolower($data->foto_ktp), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_ktp) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_ktp) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif
@@ -65,13 +75,18 @@
                                         <label class="col-sm-2 col-form-label">Foto NPWP</label>
                                         <div class="col-sm-4">
                                             <input type="file" name="foto_npwp" id="foto_npwp"
-                                                accept=".jpg, .jpeg, .png">
+                                                accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoNpwp"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 250px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_npwp)
+                                                    @if (Str::endsWith(strtolower($data->foto_npwp), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_npwp) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_npwp) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif
@@ -84,13 +99,18 @@
 
                                         <label class="col-sm-2 col-form-label">Foto KK</label>
                                         <div class="col-sm-4">
-                                            <input type="file" name="foto_kk" id="foto_kk" accept=".jpg, .jpeg, .png">
+                                            <input type="file" name="foto_kk" id="foto_kk" accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoKk"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 250px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_kk)
+                                                    @if (Str::endsWith(strtolower($data->foto_kk), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_kk) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_kk) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif
@@ -106,13 +126,18 @@
                                         <label class="col-sm-2 col-form-label">Foto BPJS</label>
                                         <div class="col-sm-4">
                                             <input type="file" name="foto_bpjs" id="foto_bpjs"
-                                                accept=".jpg, .jpeg, .png">
+                                                accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoBpjs"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 250px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_bpjs)
+                                                    @if (Str::endsWith(strtolower($data->foto_bpjs), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_bpjs) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_bpjs) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif
@@ -126,13 +151,18 @@
                                         <label class="col-sm-2 col-form-label">Foto KTP Pasangan</label>
                                         <div class="col-sm-4">
                                             <input type="file" name="foto_ktp_p" id="foto_ktp_p"
-                                                accept=".jpg, .jpeg, .png">
+                                                accept=".jpg, .jpeg, .png, .pdf">
                                             <div id="previewFotoKtpP"
                                                 class="img-thumbnail mb-2 mt-2 d-flex align-items-center justify-content-center"
                                                 style="max-width: 250px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                 @if ($data->foto_ktp_p)
+                                                    @if (Str::endsWith(strtolower($data->foto_ktp_p), ['.jpg', '.jpeg', '.png', '.webp']))
                                                     <img src="{{ asset('assets/booking/' . $data->foto_ktp_p) }}"
                                                         style="max-width: 100%; max-height: 100%;">
+                                                    @else
+                                                    <a href="{{ asset('assets/booking/' . $data->foto_ktp_p) }}"
+                                                        target="_blank">Lihat File</a>
+                                                    @endif
                                                 @else
                                                     <span style="color: #6c757d;">Tidak ada file</span>
                                                 @endif

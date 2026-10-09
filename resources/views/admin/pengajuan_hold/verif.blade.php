@@ -237,26 +237,34 @@
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_ktp)
+                                                        @if (Str::endsWith(strtolower($data->foto_ktp), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_ktp) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_ktp) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_ktp" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_ktp" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                             <div class="col-sm-6">
                                                 <label class="form-label">Foto NPWP</label>
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_npwp)
+                                                        @if (Str::endsWith(strtolower($data->foto_npwp), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_npwp) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_npwp) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_npwp" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_npwp" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                         </div>
                                         <div class="row mb-3">
@@ -265,26 +273,34 @@
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_kk)
+                                                        @if (Str::endsWith(strtolower($data->foto_kk), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_kk) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_kk) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_kk" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_kk" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                             <div class="col-sm-6">
                                                 <label class="form-label">Foto BPJS</label>
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_bpjs)
+                                                        @if (Str::endsWith(strtolower($data->foto_bpjs), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_bpjs) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_bpjs) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_bpjs" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_bpjs" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                         </div>
                                         <div class="row mb-3">
@@ -293,26 +309,34 @@
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_ktp_p)
+                                                        @if (Str::endsWith(strtolower($data->foto_ktp_p), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_ktp_p) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_ktp_p) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_ktp_p" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_ktp_p" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                             <div class="col-sm-6">
                                                 <label class="form-label">Bukti Transfer</label>
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->file_bukti)
+                                                        @if (Str::endsWith(strtolower($data->file_bukti), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->file_bukti) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->file_bukti) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="file_bukti" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="file_bukti" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                         </div>
                                         <div class="row mb-3">
@@ -321,13 +345,17 @@
                                                 <div class="img-thumbnail d-flex align-items-center justify-content-center"
                                                     style="max-width: 350px; height: 180px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
                                                     @if ($data->foto_pemohon)
+                                                        @if (Str::endsWith(strtolower($data->foto_pemohon), ['.jpg', '.jpeg', '.png', '.webp']))
                                                         <img src="{{ asset('assets/booking/' . $data->foto_pemohon) }}"
                                                             style="max-width: 100%; max-height: 100%;">
+                                                        @else
+                                                        <a href="{{ asset('assets/booking/' . $data->foto_pemohon) }}" target="_blank">Lihat File</a>
+                                                        @endif
                                                     @else
                                                         <span style="color: #6c757d;">Tidak ada file</span>
                                                     @endif
                                                 </div>
-                                                <input form="formData" type="file" name="foto_pemohon" class="form-control-file mt-2" accept="image/*">
+                                                <input form="formData" type="file" name="foto_pemohon" class="form-control-file mt-2" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
                                         </div>
                                     </div>

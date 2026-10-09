@@ -1,4 +1,4 @@
-﻿@extends('admin.layout_admin')
+@extends('admin.layout_admin')
 @section('content')
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -670,31 +670,31 @@
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto Pemohon</label>
                             <div class="col-sm-3">
-                                <input name="foto_pemohon" id="usl_foto_pemohon" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_pemohon" id="usl_foto_pemohon" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                             <label class="control-label col-sm-3">Foto KTP <span style="color: red;">*</span></label>
                             <div class="col-sm-3">
-                                <input name="foto_ktp" id="usl_foto_ktp" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_ktp" id="usl_foto_ktp" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto NPWP</label>
                             <div class="col-sm-3">
-                                <input name="foto_npwp" id="usl_foto_npwp" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_npwp" id="usl_foto_npwp" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                             <label class="control-label col-sm-3">Foto KK</label>
                             <div class="col-sm-3">
-                                <input name="foto_kk" id="usl_foto_kk" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_kk" id="usl_foto_kk" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label class="control-label col-sm-3">Foto BPJS</label>
                             <div class="col-sm-3">
-                                <input name="foto_bpjs" id="usl_foto_bpjs" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_bpjs" id="usl_foto_bpjs" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                             <label class="control-label col-sm-3">Foto KTP Pasangan</label>
                             <div class="col-sm-3">
-                                <input name="foto_ktp_p" id="usl_foto_ktp_p" type="file" accept=".jpg,.jpeg,.png">
+                                <input name="foto_ktp_p" id="usl_foto_ktp_p" type="file" accept=".jpg,.jpeg,.png,.pdf">
                             </div>
                         </div>
                         <div class="form-group row">

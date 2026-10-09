@@ -97,7 +97,7 @@
                             <label class="col-sm-3 col-form-label">Foto Meteran Listrik 1</label>
                             <div class="col-sm-3">
                                 <input type="file" class="mb-2" id="foto_listrik" name="foto_listrik"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewFotoListrik1"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
@@ -107,7 +107,7 @@
                             <label class="col-sm-3 col-form-label">Foto Meteran Listrik 2</label>
                             <div class="col-sm-3">
                                 <input type="file" class="mb-2" id="foto_listrik_2" name="foto_listrik_2"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewFotoListrik2"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
@@ -128,7 +128,7 @@
                             <label class="col-sm-3 col-form-label">Foto Meteran Air 1</label>
                             <div class="col-sm-3">
                                 <input type="file" class="mb-2" id="foto_air" name="foto_air"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewFotoAir1"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
@@ -138,7 +138,7 @@
                             <label class="col-sm-3 col-form-label">Foto Meteran Air 2</label>
                             <div class="col-sm-3">
                                 <input type="file" class="mb-2" id="foto_air_2" name="foto_air_2"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewFotoAir2"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">

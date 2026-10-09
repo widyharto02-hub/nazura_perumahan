@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', $konfigurasi->nama_perusahaan ?? 'Template Aplikasi')
 
@@ -736,7 +736,7 @@
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label">Foto Pemohon</label>
                                     <div class="col-sm-4">
-                                        <input name="foto_pemohon" id="foto_pemohon" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_pemohon" id="foto_pemohon" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_pemohon')">
                                         <div id="preview_foto_pemohon" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -747,7 +747,7 @@
                                     </div>
                                     <label class="col-sm-2 col-form-label">Foto KTP <span style="color: red;">*</span></label>
                                     <div class="col-sm-4">
-                                        <input name="foto_ktp" id="foto_ktp" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_ktp" id="foto_ktp" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_ktp')">
                                         <div id="preview_foto_ktp" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -760,7 +760,7 @@
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label">Foto NPWP</label>
                                     <div class="col-sm-4">
-                                        <input name="foto_npwp" id="foto_npwp" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_npwp" id="foto_npwp" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_npwp')">
                                         <div id="preview_foto_npwp" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -771,7 +771,7 @@
                                     </div>
                                     <label class="col-sm-2 col-form-label">Foto KK</label>
                                     <div class="col-sm-4">
-                                        <input name="foto_kk" id="foto_kk" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_kk" id="foto_kk" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_kk')">
                                         <div id="preview_foto_kk" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -785,7 +785,7 @@
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label">Foto BPJS</label>
                                     <div class="col-sm-4">
-                                        <input name="foto_bpjs" id="foto_bpjs" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_bpjs" id="foto_bpjs" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_bpjs')">
                                         <div id="preview_foto_bpjs" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -796,7 +796,7 @@
                                     </div>
                                     <label class="col-sm-2 col-form-label">Foto KTP Pasangan</label>
                                     <div class="col-sm-4">
-                                        <input name="foto_ktp_p" id="foto_ktp_p" type="file" accept=".jpg,.jpeg,.png"
+                                        <input name="foto_ktp_p" id="foto_ktp_p" type="file" accept=".jpg,.jpeg,.png,.pdf"
                                             onchange="handleFileChange(this, 'preview_foto_ktp_p')">
                                         <div id="preview_foto_ktp_p" class="mt-2 d-none">
                                             <button type="button" class="btn btn-sm btn-primary"
@@ -861,6 +861,7 @@
                 </div>
                 <div class="modal-body text-center">
                     <img id="modalPreviewImage" class="img-fluid" alt="Preview">
+                    <iframe id="modalPreviewPdf" class="w-100 d-none" style="height:70vh; border:0;" title="Preview PDF"></iframe>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Keluar</button>
@@ -908,7 +909,11 @@
                 src = modalIdOrEvent.getAttribute('data-src');
             }
 
-            document.getElementById('modalPreviewImage').src = src;
+            var isPdf = src && src.indexOf('data:application/pdf') === 0;
+            var imgEl = document.getElementById('modalPreviewImage');
+            var pdfEl = document.getElementById('modalPreviewPdf');
+            if (isPdf) { imgEl.classList.add('d-none'); pdfEl.classList.remove('d-none'); pdfEl.src = src; }
+            else { pdfEl.classList.add('d-none'); pdfEl.src = ''; imgEl.classList.remove('d-none'); imgEl.src = src; }
             const myModal = new bootstrap.Modal(document.getElementById('previewModal'));
             myModal.show();
         }

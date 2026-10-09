@@ -394,7 +394,7 @@ class SPPRController extends Controller
             ];
             foreach ($fileLabels as $field => $label) {
                 if (! $request->hasFile($field)) continue;
-                $request->validate([$field => 'mimes:jpg,jpeg,png|max:2048']);
+                $request->validate([$field => 'mimes:jpg,jpeg,png,pdf|max:2048'], [$field . '.mimes' => 'Format ' . $label . ' harus jpg, jpeg, png, atau pdf!']);
                 $file = $request->file($field);
                 $filename = uniqid($field . '_') . '.' . $file->getClientOriginalExtension();
                 $folder = public_path('assets/customer');

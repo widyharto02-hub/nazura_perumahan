@@ -111,7 +111,7 @@ class BerkasPengajuanController extends Controller
             'FOTO_SIKASEP'       => 'required',
             'TRILOGI'            => 'required',
             'catatan_kekurangan' => 'nullable',
-            'percakapan_wa'      => 'nullable|file|mimes:jpeg,png,jpg|max:2048',
+            'percakapan_wa'      => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ], [
             'IPH.required'            => 'IPH wajib dipilih!',
             'SHGB.required'           => 'SHGB wajib dipilih!',
@@ -122,7 +122,7 @@ class BerkasPengajuanController extends Controller
             'FOTO_SIKASEP.required'   => 'FOTO SIKASEP wajib dipilih!',
             'TRILOGI.required'        => 'TRILOGI wajib dipilih!',
             'percakapan_wa.file'      => 'File percakapan WA harus berupa file!',
-            'percakapan_wa.mimes'     => 'File percakapan WA harus berupa gambar dengan format jpeg, png, atau jpg!',
+            'percakapan_wa.mimes'     => 'File percakapan WA harus berformat jpeg, png, jpg, atau pdf!',
             'percakapan_wa.max'       => 'Ukuran file percakapan WA maksimal 2MB!',
         ]);
 

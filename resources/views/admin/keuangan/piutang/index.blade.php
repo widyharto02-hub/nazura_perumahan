@@ -107,7 +107,7 @@
                             <label class="col-sm-3 col-form-label">Lampiran</label>
                             <div class="col-sm-4">
                                 <input type="file" class="mb-2" id="lampiran" name="lampiran"
-                                    accept=".jpg, .jpeg, .png">
+                                    accept=".jpg, .jpeg, .png, .pdf">
                                 <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                     id="previewLampiran"
                                     style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
@@ -212,7 +212,7 @@
                         <label class="col-sm-3 col-form-label">Lampiran</label>
                         <div class="col-sm-4">
                             <input type="file" class="mb-2" id="lampiran_detail" name="lampiran_detail"
-                                accept=".jpg, .jpeg, .png">
+                                accept=".jpg, .jpeg, .png, .pdf">
                             <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
                                 id="previewLampiranDetail"
                                 style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
