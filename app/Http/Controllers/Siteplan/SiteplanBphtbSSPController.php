@@ -145,8 +145,8 @@ class SiteplanBphtbSSPController extends Controller
 
     public function cetakPDF($id_lokasi)
     {
-        $namaPerusahaan = DB::table('konfigurasi')->value('nama_perusahaan');
-        $lokasi         = DB::table('lokasi_kavling')->where('id', $id_lokasi)->first();
+        $lokasi         = LokasiKavling::with('perusahaan')->find($id_lokasi);
+        $namaPerusahaan = $lokasi?->perusahaan?->nama_perusahaan ?? '-';
         $namaKavling    = $lokasi->nama_kavling ?? '-';
         $periodeCetak   = now()->translatedFormat('d F Y');
 

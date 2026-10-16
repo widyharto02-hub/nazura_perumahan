@@ -869,7 +869,7 @@ class CustomerController extends Controller
 
     public function cetakFormSubsidi($id_customer)
     {
-        $customer = Customer::with(['kavlingPeta.lokasi', 'kavlingPeta.perusahaan', 'lokasiKavling'])
+        $customer = Customer::with(['kavlingPeta.lokasi', 'lokasiKavling.perusahaan'])
             ->findOrFail($id_customer);
 
         return DocumentGenerator::generateDocx(
@@ -883,7 +883,7 @@ class CustomerController extends Controller
     {
         $template = DocumentTemplate::where('kode', $templateCode)->where('is_active', true)->firstOrFail();
 
-        $customer = Customer::with(['kavlingPeta.lokasi', 'kavlingPeta.perusahaan', 'lokasiKavling'])
+        $customer = Customer::with(['kavlingPeta.lokasi', 'lokasiKavling.perusahaan'])
             ->findOrFail($idCustomer);
 
         return DocumentGenerator::generateFromTemplate(

@@ -426,6 +426,8 @@ class PindahUnitController extends Controller
     $customer     = $pindah->customer;
     $kavlingLama  = $pindah->kavlingLama;
     $kavlingBaru  = $pindah->kavlingBaru;
+    $lokasi       = $customer->lokasi;
+    $perusahaan   = $lokasi?->perusahaan;
 
     $pdf = new TCPDF('P', 'mm', 'A4');
     $pdf->SetTitle('Rekap Pindah Unit - ' . $customer->nama_lengkap);
@@ -443,7 +445,7 @@ class PindahUnitController extends Controller
 
     $pdf->SetFont('helvetica', 'B', 25);
     $pdf->SetTextColor(0, 51, 102);
-    $pdf->Cell(0, 7, 'PT. ALAM INDAH SELALU', 0, 1, 'C');
+    $pdf->Cell(0, 7, $perusahaan->nama_perusahaan ?? '-', 0, 1, 'C');
 
     $pdf->SetFont('Times', '', 11);
     $pdf->SetTextColor(218, 0, 0);
@@ -454,12 +456,12 @@ class PindahUnitController extends Controller
     $pdf->MultiCell(
             0,
             0,
-            'Komplek Ruko Hawai Garden Blok B No. 2 Kelurahan Belian Batan - Center',
+            $perusahaan->alamat_perusahaan ?? '-',
             0,
             'C'
         );
         $pdf->SetX(10);
-        $pdf->cell(0, 0, 'Telp. 0778 - 4173387', 0, 1, 'C');
+        $pdf->cell(0, 0, 'Telp. ' . ($perusahaan->telp_perusahaan ?? '-'), 0, 1, 'C');
 
     $pdf->Ln(5);
     $pdf->SetDrawColor(0, 0, 0);

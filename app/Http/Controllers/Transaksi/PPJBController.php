@@ -144,7 +144,7 @@ class PPJBController extends Controller
 
     public function cetakPPJB($id_customer)
     {
-        $customer = Customer::with(['kavlingPeta.lokasi', 'kavlingPeta.perusahaan', 'lokasiKavling'])
+        $customer = Customer::with(['kavlingPeta.lokasi', 'lokasiKavling.perusahaan'])
             ->findOrFail($id_customer);
         $ppjb = PPJB::where('id_customer', $id_customer)->firstOrFail();
 

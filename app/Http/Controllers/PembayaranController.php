@@ -11,8 +11,6 @@ use App\Models\LokasiKavling;
 use App\Models\MetodeBayar;
 use App\Models\Pemasukan;
 use App\Models\PengaturanMedia;
-use App\Models\PengaturanProfil;
-use App\Models\Perusahaan;
 use App\Models\Piutang;
 use App\Models\PemasukanRetensi;
 use App\Models\Retensi;
@@ -152,18 +150,14 @@ class PembayaranController extends Controller
         ])->findOrFail($id);
 
         $lokasi          = LokasiKavling::with('perusahaan')->find($customer->id_lokasi);
-        $kavling         = KavlingPeta::with('perusahaan')->find($customer->id_kavling);
-        $perusahaan      = $kavling->perusahaan;
-        if (! $perusahaan && $lokasi) {
-            $perusahaan = $lokasi->perusahaan;
-        }
+        $kavling         = KavlingPeta::find($customer->id_kavling);
+        $perusahaan      = $lokasi?->perusahaan;
 
         $namaPerusahaan   = $lokasi->nama_kavling ?? 'Nama Perusahaan Belum diisi';
         $alamatPerusahaan = $perusahaan->alamat_perusahaan ?? 'Alamat Belum diisi';
         $telpPerusahaan   = $perusahaan->telp_perusahaan ?? '-';
-        $profilPerusahaan = PengaturanProfil::first();
-        $namaProfil       = $profilPerusahaan->nama_perusahaan ?? 'PT. ALAM INDAH SELALU';
-        $telpProfil       = $profilPerusahaan->telp ?? '0778-4173387';
+        $namaProfil       = $perusahaan->nama_perusahaan ?? '-';
+        $telpProfil       = $perusahaan->telp_perusahaan ?? '-';
         $kopPath         = public_path('assets/img/kop-rekap-nazura-demak.jpg');
         $pengaturanMedia = PengaturanMedia::where('jenis_data', 'Logo Rekap')->first();
         $logoPath        = null;
@@ -387,16 +381,7 @@ class PembayaranController extends Controller
         $lokasi     = $nasabah->lokasi ?? LokasiKavling::find($nasabah->id_lokasi);
         $kavling    = $nasabah->kavling ?? KavlingPeta::find($nasabah->id_kavling);
 
-        $perusahaan = null;
-        if ($kavling && $kavling->id_perusahaan) {
-            $perusahaan = Perusahaan::find($kavling->id_perusahaan);
-        }
-        if (!$perusahaan && $lokasi) {
-            $perusahaan = $lokasi->perusahaan ?? null;
-        }
-        if (!$perusahaan) {
-            $perusahaan = Perusahaan::first();
-        }
+        $perusahaan = $lokasi?->perusahaan;
 
         $blokNomor = '-';
         if ($kavling) {
@@ -421,7 +406,7 @@ class PembayaranController extends Controller
         $pageFormat = [140, 210];
         $pdf = new TCPDF('L', 'mm', $pageFormat, true, 'UTF-8', false);
         $pdf->SetTitle('Kwitansi - ' . ($pembayaran->no_kwitansi ?? '-'));
-        $pdf->SetAuthor('RK Group Property');
+        $pdf->SetAuthor($perusahaan->nama_perusahaan ?? '-');
         $pdf->SetMargins(0, 0, 0);
         $pdf->SetAutoPageBreak(false, 0);
         $pdf->setPrintHeader(false);

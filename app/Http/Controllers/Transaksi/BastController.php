@@ -132,7 +132,7 @@ class BastController extends Controller
 
     public function cetakBast($id_customer)
     {
-        $customer = Customer::with(['kavlingPeta.lokasi', 'lokasiKavling.perusahaan'])
+        $customer = Customer::with(['kavlingPeta', 'lokasiKavling.perusahaan'])
             ->findOrFail($id_customer);
         $bast       = BAST::where('id_customer', $id_customer)->firstOrFail();
         $listrikAir = ListrikAir::where('id_kavling', $customer->id_kavling)->first();
@@ -153,9 +153,7 @@ class BastController extends Controller
             'nama_customer'   => $customer->nama_lengkap ?? '-',
             'pekerjaan_cust'  => $customer->pekerjaan ?? '-',
             'alamat_ktp'      => $customer->alamat_ktp ?? '-',
-            'nama_perumahan'  => $customer->kavlingPeta?->lokasi?->nama_kavling
-                ?? $customer->lokasiKavling?->nama_kavling
-                ?? '-',
+            'nama_perumahan'  => $customer->lokasiKavling?->nama_kavling ?? '-',
             'kode_kavling'    => $customer->kavlingPeta?->kode_kavling ?? '-',
             'tipe_rumah'      => $customer->kavlingPeta?->tipe_bangunan ?? '-',
             'norek_listrik'   => $listrikAir->norek_listrik ?? '-',
