@@ -117,8 +117,8 @@ class DocumentDataContext
     public static function getAllForCustomer(Customer $customer): array
     {
         $kavling    = $customer->kavlingPeta;
-        $lokasi     = $kavling?->lokasi ?? $customer->lokasiKavling;
-        $perusahaan = $kavling?->perusahaan;
+        $lokasi     = $customer->lokasiKavling ?? $kavling?->lokasi;
+        $perusahaan = $lokasi?->perusahaan;
 
         return array_merge(
             self::fromCustomer($customer),
