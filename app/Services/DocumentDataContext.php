@@ -116,16 +116,27 @@ class DocumentDataContext
 
     public static function getAllForCustomer(Customer $customer): array
     {
+        Carbon::setLocale('id');
+
         $kavling    = $customer->kavlingPeta;
         $lokasi     = $customer->lokasiKavling;
         $perusahaan = $lokasi?->perusahaan;
 
-        return array_merge(
+        $context = array_merge(
             self::fromCustomer($customer),
             self::fromKavlingPeta($kavling),
             self::fromLokasi($lokasi),
             self::fromPerusahaan($perusahaan),
         );
+
+        $hargaJual = $customer->hrg_jual ?: ($kavling->hrg_jual ?? 0);
+        if ($hargaJual > 0) {
+            $context['harga_jual']           = number_format($hargaJual, 0, ',', '.');
+            $context['hrg_jual']             = $context['harga_jual'];
+            $context['harga_jual_terbilang'] = self::terbilang($hargaJual);
+        }
+
+        return $context;
     }
 
     public static function getContextKeys(): array
