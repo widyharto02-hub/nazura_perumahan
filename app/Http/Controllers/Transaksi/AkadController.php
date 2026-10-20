@@ -428,12 +428,36 @@ class AkadController extends Controller
 
     public function destroy($id)
     {
-        $data = Akad::findOrFail($id);
+        DB::beginTransaction();
 
-        $this->logDelete('Akad', $data->id);
-        $data->delete();
+        try {
+            $data = Akad::findOrFail($id);
 
-        return response()->json(['status' => 'success']);
+            $idCustomer = AkadDetail::where('id_akad', $data->id)->pluck('id_customer');
+
+            AkadDetail::where('id_akad', $data->id)->delete();
+
+            if ($idCustomer->isNotEmpty()) {
+                Customer::whereIn('id', $idCustomer)
+                    ->update(['id_status_progres' => 4]);
+            }
+
+            $this->logDelete('Akad', $data->id);
+            $data->delete();
+
+            DB::commit();
+
+            return response()->json(['status' => 'success']);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Error hapus akad: ' . $e->getMessage());
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
