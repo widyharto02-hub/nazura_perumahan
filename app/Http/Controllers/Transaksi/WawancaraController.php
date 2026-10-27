@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Transaksi;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
+use App\Models\Akad;
+use App\Models\AkadDetail;
 use App\Models\BankKPR;
 use App\Models\Customer;
 use App\Models\Notaris;
@@ -27,10 +29,15 @@ class WawancaraController extends Controller
         app(AkadController::class)->refreshDeadlineAkad();
 
         if ($request->ajax()) {
+            $customerSudahAkad = AkadDetail::where('status', 2)
+                ->whereIn('id_akad', Akad::pluck('id'))
+                ->pluck('id_customer');
+
             $data = Wawancara::with(['customer', 'customer.lokasi', 'customer.kavling', 'bankKPR'])
                 ->where('status', 1)
-                ->whereHas('customer', function ($q) {
-                    $q->where('stt_arsip', 0);
+                ->whereHas('customer', function ($q) use ($customerSudahAkad) {
+                    $q->where('stt_arsip', 0)
+                        ->whereNotIn('id', $customerSudahAkad);
                 })
                 ->orderByDesc('id');
 

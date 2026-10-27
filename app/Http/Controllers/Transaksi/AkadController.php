@@ -29,8 +29,16 @@ class AkadController extends Controller
     {
         $today = Carbon::now('Asia/Jakarta')->startOfDay();
 
+        // Customer yang sudah dipilih di detail akad (belum hadir) tidak ikut auto-expired SP3K
+        $customerTerpilih = AkadDetail::where('status', 1)
+            ->whereIn('id_akad', Akad::pluck('id'))
+            ->pluck('id_customer');
+
         $expired = WawancaraSp3k::where('status', 1)
             ->whereDate('tgl_expired', '<', $today)
+            ->whereHas('wawancara.customer', function ($q) use ($customerTerpilih) {
+                $q->whereNotIn('id', $customerTerpilih);
+            })
             ->get();
 
         if ($expired->isEmpty()) {
@@ -122,6 +130,7 @@ class AkadController extends Controller
 
             $customerHadirAkadLain = AkadDetail::where('status', 2)
                 ->where('id_akad', '!=', $id)
+                ->whereIn('id_akad', Akad::pluck('id'))
                 ->pluck('id_customer')
                 ->toArray();
 
