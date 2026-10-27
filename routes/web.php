@@ -321,6 +321,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('pengeluaran', PengeluaranController::class);
         Route::resource('berkas-legalitas', BerkasLegalitasController::class);
         Route::resource('hutang', HutangController::class);
+        Route::get('hutang/{id}/riwayat', [HutangController::class, 'riwayat'])->name('hutang.riwayat');
         Route::resource('piutang', PiutangController::class);
         Route::resource('kategori-transaksi', KategoriTransaksiController::class);
         Route::resource('mutasi-saldo', MutasiSaldoController::class);

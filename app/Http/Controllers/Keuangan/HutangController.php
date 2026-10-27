@@ -74,12 +74,17 @@ class HutangController extends Controller
                     });
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
-                    $editUrl   = route('hutang.edit', $row->id);
-                    $deleteUrl = route('hutang.destroy', $row->id);
+                    $editUrl    = route('hutang.edit', $row->id);
+                    $deleteUrl  = route('hutang.destroy', $row->id);
+                    $riwayatUrl = route('hutang.riwayat', $row->id);
 
-                    $btn = '<div class="d-flex justify-content-center">';
+                    $btn = '<div class="d-flex justify-content-center flex-wrap">';
+                    $btn .= '<button class="btn btn-info btn-xs mx-1 riwayat-button"
+                            data-id="' . e($row->id) . '"
+                            data-url="' . e($riwayatUrl) . '">Riwayat</button>';
+
                     if ($permissions['edit']) {
-                        $btn .= '<button class="btn btn-primary btn-sm mx-1 edit-button"
+                        $btn .= '<button class="btn btn-primary btn-xs mx-1 edit-button"
                                 data-id="' . e($row->id) . '"
                                 data-url="' . e($editUrl) . '">Edit</button>';
                     }
@@ -87,7 +92,7 @@ class HutangController extends Controller
                     if ($permissions['hapus']) {
                         $btn .= '<form action="' . e($deleteUrl) . '" method="POST" style="display:inline;">
                     ' . csrf_field() . method_field('DELETE') . '
-                    <button type="submit" class="delete-button btn btn-danger btn-sm mx-1">
+                    <button type="submit" class="delete-button btn btn-danger btn-xs mx-1">
                         Hapus
                     </button>
                     </form>';
@@ -216,14 +221,21 @@ class HutangController extends Controller
         DB::beginTransaction();
         try {
 
+            $nominalBaru = (int) str_replace('.', '', $request->nominal);
+            $terbayar    = (int) Pengeluaran::where('id_hutang', $id)
+                ->where('id_kategori_transaksi', 10)
+                ->sum('nominal');
+            $sisaBayar   = max(0, $nominalBaru - $terbayar);
+
             $db = [
                 'tanggal_hutang' => $request->tanggal_hutang,
                 'deskripsi'      => $request->deskripsi,
-                'nominal'        => str_replace('.', '', $request->nominal),
+                'nominal'        => $nominalBaru,
                 'id_bank'        => $request->id_bank,
-                'terbayar'       => 0,
-                'sisa_bayar'     => str_replace('.', '', $request->nominal),
-                'tgl_pelunasan'  => null,
+                'terbayar'       => $terbayar,
+                'sisa_bayar'     => $sisaBayar,
+                'status'         => $sisaBayar == 0 ? 2 : 1,
+                'tgl_pelunasan'  => $sisaBayar == 0 ? ($data->tgl_pelunasan ?? Carbon::now()) : null,
             ];
 
             $filename = $data->lampiran;
@@ -305,8 +317,58 @@ class HutangController extends Controller
         }
     }
 
-    public function getSisaBayar($id)
+    public function riwayat($id)
     {
+        $hutang = Hutang::find($id);
+
+        if (! $hutang) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Data hutang tidak ditemukan.',
+            ], 404);
+        }
+
+        $pembayaran = Pengeluaran::where('id_hutang', $id)
+            ->where('id_kategori_transaksi', 10)
+            ->orderBy('tanggal')
+            ->orderBy('id')
+            ->get();
+
+        $totalBayar = $pembayaran->sum('nominal');
+
+        $detail = $pembayaran->map(function ($row) {
+            $bank = Bank::find($row->id_bank);
+
+            return [
+                'id'           => $row->id,
+                'tanggal'      => Carbon::parse($row->tanggal)->translatedFormat('j F Y'),
+                'nominal'      => number_format($row->nominal, 0, ',', '.'),
+                'rekening'     => $bank ? $bank->nama : '-',
+                'keterangan'   => $row->keterangan ?: '-',
+                'lampiran'     => $row->lampiran,
+                'lampiran_url' => $row->lampiran
+                    ? asset('assets/keuangan/pengeluaran/' . $row->lampiran)
+                    : null,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'hutang'     => [
+                    'id'         => $hutang->id,
+                    'deskripsi'  => $hutang->deskripsi,
+                    'nominal'    => number_format($hutang->nominal, 0, ',', '.'),
+                    'terbayar'   => number_format($hutang->terbayar, 0, ',', '.'),
+                    'sisa_bayar' => number_format($hutang->sisa_bayar, 0, ',', '.'),
+                ],
+                'pembayaran' => $detail,
+                'total'      => number_format($totalBayar, 0, ',', '.'),
+            ],
+        ]);
+    }
+
+    public function getSisaBayar($id)    {
         $hutang = Hutang::find($id);
 
         if (! $hutang) {

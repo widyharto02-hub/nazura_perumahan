@@ -35,7 +35,7 @@
                                         </fieldset>
                                     </div>
                                 </div>
-                                <table class="table data-table table-bordered w-100 table-striped">
+                                <table class="table small data-table table-bordered w-100 table-striped">
                                     <thead>
                                         <tr>
                                             <th width="5%">No</th>
@@ -44,7 +44,7 @@
                                             <th width="15%">Nominal</th>
                                             <th width="18%">Status</th>
                                             <th width="10%">Tanggal Pelunasan</th>
-                                            <th width="10%" class="text-center">Action</th>
+                                            <th width="20%" class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -168,6 +168,64 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalRiwayat" tabindex="-1" role="dialog" aria-labelledby="modalRiwayatLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-indigo">
+                    <h5 class="modal-title text-white font-weight-bold" id="modalRiwayatLabel">Riwayat Pembayaran Hutang
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <div class="font-weight-bold mb-2" id="riwayat-deskripsi"></div>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td width="30%">Nominal Hutang</td>
+                                <td id="riwayat-nominal"></td>
+                            </tr>
+                            <tr>
+                                <td>Terbayar</td>
+                                <td id="riwayat-terbayar"></td>
+                            </tr>
+                            <tr>
+                                <td>Sisa Bayar</td>
+                                <td id="riwayat-sisa"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table small table-bordered table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th>Tanggal</th>
+                                    <th>Rekening</th>
+                                    <th>Nominal</th>
+                                    <th>Keterangan</th>
+                                    <th width="10%" class="text-center">Lampiran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayat-tbody"></tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-right">Total Pembayaran</th>
+                                    <th id="riwayat-total" colspan="3"></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Keluar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('scripts')
     <script>
@@ -189,7 +247,7 @@
         });
 
         var permissions = @json($permissions);
-        var showActionColumn = (permissions['edit'] == 1 || permissions['hapus'] == 1);
+        var showActionColumn = (permissions['lihat'] == 1 || permissions['edit'] == 1 || permissions['hapus'] == 1);
 
         function reloadTable() {
             $('.data-table').DataTable().ajax.reload();
@@ -293,6 +351,61 @@
 
                     $('#modalForm').modal('show');
                 }
+            });
+        });
+
+        function escapeHtml(value) {
+            return $('<div>').text(value === null || value === undefined ? '' : value).html();
+        }
+
+        $(document).on('click', '.riwayat-button', function() {
+            var url = $(this).data('url');
+            var tbody = $('#riwayat-tbody');
+
+            tbody.html('<tr><td colspan="6" class="text-center">Memuat data...</td></tr>');
+            $('#riwayat-deskripsi, #riwayat-nominal, #riwayat-terbayar, #riwayat-sisa, #riwayat-total').text('');
+
+            $.get(url, function(response) {
+                if (response.status !== 'success') {
+                    return;
+                }
+
+                var data = response.data;
+
+                $('#riwayat-deskripsi').text(data.hutang.deskripsi);
+                $('#riwayat-nominal').text('Rp. ' + data.hutang.nominal);
+                $('#riwayat-terbayar').text('Rp. ' + data.hutang.terbayar);
+                $('#riwayat-sisa').text('Rp. ' + data.hutang.sisa_bayar);
+                $('#riwayat-total').text('Rp. ' + data.total);
+
+                if (!data.pembayaran.length) {
+                    tbody.html('<tr><td colspan="6" class="text-center">Belum ada pembayaran.</td></tr>');
+                } else {
+                    var rows = '';
+                    data.pembayaran.forEach(function(item, index) {
+                        var lampiran = item.lampiran_url ?
+                            '<a href="' + escapeHtml(item.lampiran_url) +
+                            '" target="_blank" class="btn btn-info btn-xs">Lihat</a>' :
+                            '-';
+
+                        rows += '<tr>' +
+                            '<td class="text-center">' + (index + 1) + '</td>' +
+                            '<td>' + escapeHtml(item.tanggal) + '</td>' +
+                            '<td>' + escapeHtml(item.rekening) + '</td>' +
+                            '<td class="text-right">Rp. ' + escapeHtml(item.nominal) + '</td>' +
+                            '<td>' + escapeHtml(item.keterangan) + '</td>' +
+                            '<td class="text-center">' + lampiran + '</td>' +
+                            '</tr>';
+                    });
+                    tbody.html(rows);
+                }
+
+                $('#modalRiwayat').modal('show');
+            }).fail(function() {
+                tbody.html(
+                    '<tr><td colspan="6" class="text-center text-danger">Gagal memuat data riwayat.</td></tr>'
+                );
+                $('#modalRiwayat').modal('show');
             });
         });
 

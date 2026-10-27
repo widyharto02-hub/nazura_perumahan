@@ -174,7 +174,7 @@ class PengeluaranController extends Controller
             'id_lokasi'             => ['required', 'integer', Rule::in(array_merge([0], LokasiKavling::pluck('id')->all()))],
             'lampiran'              => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'id_kategori_transaksi' => 'required',
-            'id_hutang'             => 'required_if:id_kategori_transaksi,3',
+            'id_hutang'             => 'required_if:id_kategori_transaksi,10',
         ], [
             'tanggal.required'               => 'Tanggal wajib diisi.',
             'tanggal.date'                   => 'Tanggal harus berupa tanggal.',
@@ -189,7 +189,7 @@ class PengeluaranController extends Controller
             'id_hutang.required_if'          => 'Hutang wajib dipilih',
         ]);
 
-        if (! empty($request->id_hutang)) {
+        if ((int) $request->id_kategori_transaksi === 10 && ! empty($request->id_hutang)) {
             $hutang = Hutang::find($request->id_hutang);
 
             if ($hutang) {
@@ -204,7 +204,7 @@ class PengeluaranController extends Controller
         }
 
         $db = [
-            'id_hutang'             => $request->id_hutang ?? 0,
+            'id_hutang'             => (int) $request->id_kategori_transaksi === 10 ? (int) $request->id_hutang : 0,
             'id_piutang'            => 0,
             'id_po'                 => 0,
             'id_mutasi'             => 0,
@@ -230,19 +230,20 @@ class PengeluaranController extends Controller
         $pl = Pengeluaran::create($db);
         $this->logCreate('Pengeluaran', $pl->id);
 
-        if (! empty($request->id_hutang)) {
+        if ((int) $request->id_kategori_transaksi === 10 && ! empty($request->id_hutang)) {
             $hutang = Hutang::find($request->id_hutang);
 
             if ($hutang) {
-                $nominalBayar  = $hutang->terbayar + str_replace('.', '', $request->nominal);
-                $sisaBayarBaru = $hutang->sisa_bayar - str_replace('.', '', $request->nominal);
+                $nominalBayar = (int) str_replace('.', '', $request->nominal);
+                $terbayar     = $hutang->terbayar + $nominalBayar;
+                $sisaBayar    = max(0, $hutang->nominal - $terbayar);
 
                 $updateData = [
-                    'terbayar'   => $nominalBayar,
-                    'sisa_bayar' => $sisaBayarBaru,
+                    'terbayar'   => $terbayar,
+                    'sisa_bayar' => $sisaBayar,
                 ];
 
-                if ($sisaBayarBaru == 0) {
+                if ($sisaBayar == 0) {
                     $updateData['status']        = 2;
                     $updateData['tgl_pelunasan'] = Carbon::now();
                 }
@@ -294,6 +295,25 @@ class PengeluaranController extends Controller
             'id_kategori_transaksi.required' => 'Kategori transaksi wajib diisi jika memilih jenis 5.',
         ]);
 
+        $idHutangCek = $request->filled('id_hutang') ? (int) $request->id_hutang : (int) $data->id_hutang;
+        $kategoriCek = $request->filled('id_kategori_transaksi') ? (int) $request->id_kategori_transaksi : (int) $data->id_kategori_transaksi;
+
+        if ($kategoriCek === 10 && $idHutangCek > 0) {
+            $hutangCek = Hutang::find($idHutangCek);
+            if ($hutangCek) {
+                $tersedia = (int) $hutangCek->sisa_bayar;
+                if ((int) $data->id_kategori_transaksi === 10 && (int) $data->id_hutang === $idHutangCek) {
+                    $tersedia += (int) $data->nominal;
+                }
+
+                if ((int) str_replace('.', '', $request->nominal) > $tersedia) {
+                    return response()->json([
+                        'errors' => ['nominal' => ['Nominal tidak boleh lebih besar dari sisa hutang.']],
+                    ], 422);
+                }
+            }
+        }
+
         $db = [
             'tanggal'    => $request->tanggal,
             'id_bank'    => $request->id_bank,
@@ -316,60 +336,44 @@ class PengeluaranController extends Controller
             $db['lampiran'] = $filename;
         }
 
-        if ($data->id_kategori_transaksi == 10) {
-            if ($request->id_hutang != $data->id_hutang) {
-                $hutanglama = Hutang::find($data->id_hutang);
-                if ($hutanglama) {
-                    $hutanglama->update([
-                        'terbayar'      => $hutanglama->terbayar - $data->nominal,
-                        'sisa_bayar'    => $hutanglama->sisa_bayar + $data->nominal,
-                        'status'        => 1,
-                        'tgl_pelunasan' => null,
-                    ]);
-                }
+        $kategoriLama = (int) $data->id_kategori_transaksi;
+        $kategoriBaru = $request->filled('id_kategori_transaksi') ? (int) $request->id_kategori_transaksi : $kategoriLama;
 
-                $hutangbaru = Hutang::find($request->id_hutang);
-                if ($hutangbaru) {
-                    $nominalBayar  = str_replace('.', '', $request->nominal);
-                    $sisaBayarBaru = $hutangbaru->sisa_bayar - $nominalBayar;
+        $idHutangLama = (int) $data->id_hutang;
+        $idHutangBaru = $request->filled('id_hutang') ? (int) $request->id_hutang : $idHutangLama;
 
-                    $updateData = [
-                        'terbayar'   => $nominalBayar,
-                        'sisa_bayar' => $sisaBayarBaru,
-                    ];
+        $nominalLama = (int) $data->nominal;
+        $nominalBaru = (int) str_replace('.', '', $request->nominal);
 
-                    if ($sisaBayarBaru == 0) {
-                        $updateData['status']        = 2;
-                        $updateData['tgl_pelunasan'] = Carbon::now();
-                    }
+        // Kembalikan pembayaran lama ke kondisi sebelum transaksi ini
+        if ($kategoriLama === 10 && $idHutangLama > 0) {
+            $hutangLama = Hutang::find($idHutangLama);
+            if ($hutangLama) {
+                $terbayar  = max(0, $hutangLama->terbayar - $nominalLama);
+                $sisaBayar = max(0, $hutangLama->nominal - $terbayar);
 
-                    $hutangbaru->update($updateData);
-                }
-            } else {
-                $hutanglama2 = Hutang::find($data->id_hutang);
-                if ($hutanglama2) {
-                    $hutanglama2->update([
-                        'terbayar'      => $hutanglama2->terbayar - $data->nominal,
-                        'sisa_bayar'    => $hutanglama2->sisa_bayar + $data->nominal,
-                        'status'        => 1,
-                        'tgl_pelunasan' => null,
-                    ]);
+                $hutangLama->update([
+                    'terbayar'      => $terbayar,
+                    'sisa_bayar'    => $sisaBayar,
+                    'status'        => $sisaBayar == 0 ? 2 : 1,
+                    'tgl_pelunasan' => $sisaBayar == 0 ? $hutangLama->tgl_pelunasan : null,
+                ]);
+            }
+        }
 
-                    $nominalBayar  = $hutanglama2->terbayar + str_replace('.', '', $request->nominal);
-                    $sisaBayarBaru = $hutanglama2->sisa_bayar - str_replace('.', '', $request->nominal);
+        // Terapkan nominal terbaru ke hutang tujuan
+        if ($kategoriBaru === 10 && $idHutangBaru > 0) {
+            $hutangBaru = Hutang::find($idHutangBaru);
+            if ($hutangBaru) {
+                $terbayar  = $hutangBaru->terbayar + $nominalBaru;
+                $sisaBayar = max(0, $hutangBaru->nominal - $terbayar);
 
-                    $updateData = [
-                        'terbayar'   => $nominalBayar,
-                        'sisa_bayar' => $sisaBayarBaru,
-                    ];
-
-                    if ($sisaBayarBaru == 0) {
-                        $updateData['status']        = 2;
-                        $updateData['tgl_pelunasan'] = Carbon::now();
-                    }
-
-                    $hutanglama2->update($updateData);
-                }
+                $hutangBaru->update([
+                    'terbayar'      => $terbayar,
+                    'sisa_bayar'    => $sisaBayar,
+                    'status'        => $sisaBayar == 0 ? 2 : 1,
+                    'tgl_pelunasan' => $sisaBayar == 0 ? Carbon::now() : null,
+                ]);
             }
         }
 
@@ -393,14 +397,17 @@ class PengeluaranController extends Controller
             unlink(public_path('assets/keuangan/pengeluaran/' . $data->lampiran));
         }
 
-        if ($data->id_hutang != 0) {
+        if ((int) $data->id_kategori_transaksi === 10 && (int) $data->id_hutang > 0) {
             $hutanglama = Hutang::find($data->id_hutang);
             if ($hutanglama) {
+                $terbayar  = max(0, $hutanglama->terbayar - (int) $data->nominal);
+                $sisaBayar = max(0, $hutanglama->nominal - $terbayar);
+
                 $hutanglama->update([
-                    'terbayar'      => $hutanglama->terbayar - $data->nominal,
-                    'sisa_bayar'    => $hutanglama->sisa_bayar + $data->nominal,
-                    'status'        => 1,
-                    'tgl_pelunasan' => null,
+                    'terbayar'      => $terbayar,
+                    'sisa_bayar'    => $sisaBayar,
+                    'status'        => $sisaBayar == 0 ? 2 : 1,
+                    'tgl_pelunasan' => $sisaBayar == 0 ? $hutanglama->tgl_pelunasan : null,
                 ]);
             }
         }
