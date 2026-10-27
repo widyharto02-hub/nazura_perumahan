@@ -3,8 +3,6 @@ namespace App\Http\Controllers\Transaksi;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
-use App\Models\Akad;
-use App\Models\AkadDetail;
 use App\Models\Wawancara;
 use App\Models\WawancaraSp3k;
 use App\Traits\LogAktivitasTrait;
@@ -26,20 +24,33 @@ class AccBankController extends Controller
         app(AkadController::class)->refreshDeadlineAkad();
 
         if ($request->ajax()) {
-            $customerSudahAkad = AkadDetail::where('status', 2)
-                ->whereIn('id_akad', Akad::pluck('id'))
-                ->pluck('id_customer');
+            $statusAkad = $request->get('status_akad');
 
             $data = WawancaraSp3k::with(
                 'wawancara.customer',
                 'wawancara.customer.lokasi',
                 'wawancara.customer.kavling',
+                'wawancara.customer.akadDetail',
                 'bankKPR'
             )
                 ->where('status', 1)
-                ->whereHas('wawancara.customer', function ($q) use ($customerSudahAkad) {
-                    $q->where('stt_arsip', 0)
-                        ->whereNotIn('id', $customerSudahAkad);
+                ->whereHas('wawancara.customer', function ($q) {
+                    $q->where('stt_arsip', 0);
+                })
+                ->when($statusAkad === 'belum', function ($query) {
+                    $query->whereDoesntHave('wawancara.customer.akadDetail');
+                })
+                ->when($statusAkad === 'terdaftar', function ($query) {
+                    $query->whereHas('wawancara.customer.akadDetail', function ($q) {
+                        $q->where('status', 1);
+                    })->whereDoesntHave('wawancara.customer.akadDetail', function ($q) {
+                        $q->where('status', 2);
+                    });
+                })
+                ->when($statusAkad === 'hadir', function ($query) {
+                    $query->whereHas('wawancara.customer.akadDetail', function ($q) {
+                        $q->where('status', 2);
+                    });
                 })
                 ->orderByDesc('id');
 
@@ -67,31 +78,40 @@ class AccBankController extends Controller
                         <span>' . number_format($row->acc_plafon, 0, ',', '.') . '</span>
                     </div>';
                 })
-                ->editColumn('tgl_terbit_sp3k', function ($row) {
-                    return $row->tgl_terbit_sp3k ? Carbon::parse($row->tgl_terbit_sp3k)->translatedFormat('d F Y') : '-';
-                })
+                ->addColumn('periode_sp3k', function ($row) {
+                    $tglTerbit = $row->tgl_terbit_sp3k
+                        ? Carbon::parse($row->tgl_terbit_sp3k)->translatedFormat('d M Y')
+                        : '-';
+                    $tglExpired = $row->tgl_expired
+                        ? Carbon::parse($row->tgl_expired)->translatedFormat('d M Y')
+                        : '-';
 
-                ->editColumn('tgl_expired', function ($row) {
-                    return $row->tgl_expired ? Carbon::parse($row->tgl_expired)->translatedFormat('d F Y') : '-';
-                })
-
-                ->addColumn('sisa_hari', function ($row) {
-                    if ($row->tgl_terbit_sp3k && $row->tgl_expired) {
-                        try {
-                            $tglExpired = Carbon::parse($row->tgl_expired)->startOfDay();
-                            $today      = Carbon::now()->startOfDay();
-
-                            $sisaHari = $today->diffInDays($tglExpired, false);
-
-                            return $sisaHari > 0
-                                ? $sisaHari . ' hari'
-                                : '<span class="text-danger">Kadaluarsa</span>';
-                        } catch (\Exception $e) {
-                            return '<span class="text-danger">Tanggal tidak valid</span>';
-                        }
+                    if ($row->tgl_expired) {
+                        $sisaHari  = Carbon::now()->startOfDay()->diffInDays(
+                            Carbon::parse($row->tgl_expired)->startOfDay(),
+                            false
+                        );
+                        $sisaText  = $sisaHari > 0 ? 'Sisa ' . $sisaHari . ' hari' : 'Kadaluarsa';
+                        $sisaClass = $sisaHari > 0 ? 'text-muted' : 'text-danger';
+                    } else {
+                        $sisaText  = '-';
+                        $sisaClass = 'text-muted';
                     }
 
-                    return '-';
+                    $detailAkad = optional($row->wawancara->customer)->akadDetail;
+                    if ($detailAkad && $detailAkad->contains('status', 2)) {
+                        $badge = '<span class="badge badge-success">Hadir Akad</span>';
+                    } elseif ($detailAkad && $detailAkad->contains('status', 1)) {
+                        $badge = '<span class="badge badge-warning">Terdaftar Akad</span>';
+                    } else {
+                        $badge = '<span class="badge badge-secondary">Belum Akad</span>';
+                    }
+
+                    return '<div class="periode-sp3k">'
+                        . '<div class="font-weight-bold">' . $tglTerbit . ' s/d ' . $tglExpired . '</div>'
+                        . '<div class="small ' . $sisaClass . '">' . $sisaText . '</div>'
+                        . '<div class="mt-1">' . $badge . '</div>'
+                        . '</div>';
                 })
                 ->addColumn('action', function ($row) use ($permissions) {
                     $editUrl   = route('sp3k.show', $row->id_wawancara);
@@ -109,7 +129,7 @@ class AccBankController extends Controller
                     return $btn;
                 })
 
-                ->rawColumns(['action', 'harga_jual', 'acc_plafon', 'sisa_hari'])
+                ->rawColumns(['action', 'harga_jual', 'acc_plafon', 'periode_sp3k'])
                 ->make(true);
         }
 

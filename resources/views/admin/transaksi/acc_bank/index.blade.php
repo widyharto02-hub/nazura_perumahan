@@ -22,6 +22,18 @@
                                 </div>
                             </div>
                             <div class="card-body">
+                                <div class="row align-items-end mb-3">
+                                    <div class="col-md-3">
+                                        <div class="form-group mb-md-0">
+                                            <select id="filterStatusAkad" class="form-control select-status">
+                                                <option value="">Semua Status</option>
+                                                <option value="belum">Belum Akad</option>
+                                                <option value="terdaftar">Terdaftar Akad</option>
+                                                <option value="hadir">Hadir Akad</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                                 <table class="table table-bordered w-100 small table-striped data-table">
                                     <thead>
                                         <tr>
@@ -31,9 +43,7 @@
                                             <th>Bank KPR</th>
                                             <th>Harga Jual</th>
                                             <th>ACC Plafon</th>
-                                            <th>Tgl SP3K</th>
-                                            <th>Tgl Expired</th>
-                                            <th>Sisa Hari</th>
+                                            <th>Periode SP3K</th>
                                             <th class="text-center" width="13%">Action</th>
                                         </tr>
                                     </thead>
@@ -59,7 +69,12 @@
                 serverSide: false,
                 ordering: false,
                 responsive: true,
-                ajax: "{{ route('sp3k.index') }}",
+                ajax: {
+                    url: "{{ route('sp3k.index') }}",
+                    data: function(d) {
+                        d.status_akad = $('#filterStatusAkad').val();
+                    }
+                },
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -98,22 +113,10 @@
                         searchable: false
                     },
                     {
-                        data: 'tgl_terbit_sp3k',
-                        name: 'tgl_terbit_sp3k',
+                        data: 'periode_sp3k',
+                        name: 'periode_sp3k',
                         orderable: false,
                         searchable: false
-                    },
-                    {
-                        data: 'tgl_expired',
-                        name: 'tgl_expired',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'sisa_hari',
-                        name: 'sisa_hari',
-                        orderable: false,
-                        searchable: false,
                     },
                     {
                         data: 'action',
@@ -129,6 +132,16 @@
                         return meta.row + meta.settings._iDisplayStart + 1;
                     }
                 }, ]
+            });
+
+            $('.select-status').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Semua Status',
+                allowClear: true
+            });
+
+            $('#filterStatusAkad').on('change', function() {
+                table.ajax.reload(null, false);
             });
         });
 
