@@ -112,21 +112,18 @@ class AkadController extends Controller
 
             $filter = $request->get('filter', 1);
 
-            $idWawancara = WawancaraSp3k::where('status', 1)
-                ->pluck('id_wawancara');
-
-            $customers = Wawancara::with([
-                'customer.kavling',
-                'customer.lokasi',
-                'customer.persyaratan',
-            ])
-                ->whereIn('id', $idWawancara)
-                ->whereHas('customer', function ($q) {
-                    $q->where('stt_arsip', 0);
+            $customers = Customer::with(['kavling', 'lokasi', 'persyaratan'])
+                ->where('stt_arsip', 0)
+                ->where(function ($query) use ($id) {
+                    $query->where('jenis_pembelian', 'Pembelian Cash')
+                        ->orWhereHas('wawancara.wawancaraSp3k', function ($sp3k) {
+                            $sp3k->where('status', 1);
+                        })
+                        ->orWhereHas('akadDetail', function ($detail) use ($id) {
+                            $detail->where('id_akad', $id);
+                        });
                 })
-                ->get()
-                ->pluck('customer')
-                ->unique('id');
+                ->get();
 
             $customerHadirAkadLain = AkadDetail::where('status', 2)
                 ->where('id_akad', '!=', $id)

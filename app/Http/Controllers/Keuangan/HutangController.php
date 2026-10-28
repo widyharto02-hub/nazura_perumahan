@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Bank;
 use App\Models\Hutang;
+use App\Models\LokasiKavling;
 use App\Models\Pemasukan;
 use App\Models\Pengeluaran;
 use App\Traits\LogAktivitasTrait;
@@ -25,7 +26,7 @@ class HutangController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $data = Hutang::query()->orderByDesc('tanggal_hutang');
+            $data = Hutang::with('lokasi')->orderByDesc('tanggal_hutang');
 
             if ($request->filled('filter_tanggal')) {
                 $data->whereDate('tanggal_hutang', $request->filter_tanggal);
@@ -35,6 +36,9 @@ class HutangController extends Controller
                 ->addIndexColumn()
                 ->addColumn('tanggal_hutang', function ($row) {
                     return Carbon::parse($row->tanggal_hutang)->translatedFormat('j F Y');
+                })
+                ->addColumn('lokasi', function ($row) {
+                    return $row->lokasi?->nama_kavling ?? '-';
                 })
                 ->editColumn('nominal', function ($row) {
                     return '
@@ -61,12 +65,12 @@ class HutangController extends Controller
                         return $badge . '<br><small class="text-muted">Sisa Bayar: Rp. ' . $sisaBayar . '</small>';
                     }
 
+                    if ($row->tgl_pelunasan) {
+                        $tglPelunasan = Carbon::parse($row->tgl_pelunasan)->translatedFormat('j F Y');
+                        return $badge . '<br><small class="text-muted">Tgl Pelunasan: ' . $tglPelunasan . '</small>';
+                    }
+
                     return $badge;
-                })
-                ->addColumn('tgl_pelunasan', function ($row) {
-                    return $row->tgl_pelunasan
-                        ? Carbon::parse($row->tgl_pelunasan)->translatedFormat('j F Y')
-                        : '';
                 })
                 ->filterColumn('tanggal_hutang', function ($query, $keyword) {
                     $query->where(function ($q) use ($keyword) {
@@ -100,13 +104,14 @@ class HutangController extends Controller
                     $btn .= '</div>';
                     return $btn;
                 })
-                ->rawColumns(['action', 'tanggal_hutang', 'nominal', 'status', 'tgl_bayar_hutang'])
+                ->rawColumns(['action', 'tanggal_hutang', 'nominal', 'status'])
                 ->make(true);
         }
 
         $bankList = Bank::all();
+        $lokasiList = LokasiKavling::orderBy('urutan')->orderBy('nama_kavling')->get();
 
-        return view('admin.keuangan.hutang.index', compact('permissions', 'bankList'));
+        return view('admin.keuangan.hutang.index', compact('permissions', 'bankList', 'lokasiList'));
     }
 
     public function edit($id)
@@ -125,6 +130,7 @@ class HutangController extends Controller
             'tanggal_hutang' => 'required|date',
             'nominal'        => 'required',
             'id_bank'        => 'required',
+            'id_lokasi'      => 'nullable|integer|exists:lokasi_kavling,id',
             'lampiran'       => 'required|file|mimes:jpg,jpeg,png,pdf,webp|max:2048',
             'deskripsi'      => 'required',
         ], [
@@ -132,6 +138,7 @@ class HutangController extends Controller
             'tanggal_hutang.date'     => 'Tanggal hutang harus berupa tanggal.',
             'nominal.required'        => 'Nominal wajib diisi.',
             'id_bank.required'        => 'Bank wajib diisi.',
+            'id_lokasi.exists'        => 'Lokasi yang dipilih tidak valid.',
             'lampiran.required'       => 'Lampiran wajib diisi.',
             'lampiran.file'           => 'Lampiran harus berupa file.',
             'lampiran.mimes'          => 'Format lampiran harus jpg, jpeg, png, atau pdf.',
@@ -147,6 +154,7 @@ class HutangController extends Controller
                 'deskripsi'      => $request->deskripsi,
                 'nominal'        => str_replace('.', '', $request->nominal),
                 'id_bank'        => $request->id_bank,
+                'id_lokasi'      => $request->id_lokasi,
                 'status'         => 1,
                 'terbayar'       => 0,
                 'sisa_bayar'     => str_replace('.', '', $request->nominal),
@@ -197,6 +205,7 @@ class HutangController extends Controller
             'tanggal_hutang' => 'required|date',
             'nominal'        => 'required',
             'id_bank'        => 'required',
+            'id_lokasi'      => 'nullable|integer|exists:lokasi_kavling,id',
             'deskripsi'      => 'required',
         ];
 
@@ -211,6 +220,7 @@ class HutangController extends Controller
             'tanggal_hutang.date'     => 'Tanggal hutang harus berupa tanggal.',
             'nominal.required'        => 'Nominal wajib diisi.',
             'id_bank.required'        => 'Bank wajib diisi.',
+            'id_lokasi.exists'        => 'Lokasi yang dipilih tidak valid.',
             'lampiran.required'       => 'Lampiran wajib diisi.',
             'lampiran.file'           => 'Lampiran harus berupa file.',
             'lampiran.mimes'          => 'Format lampiran harus jpg, jpeg, png, atau pdf.',
@@ -232,6 +242,7 @@ class HutangController extends Controller
                 'deskripsi'      => $request->deskripsi,
                 'nominal'        => $nominalBaru,
                 'id_bank'        => $request->id_bank,
+                'id_lokasi'      => $request->id_lokasi,
                 'terbayar'       => $terbayar,
                 'sisa_bayar'     => $sisaBayar,
                 'status'         => $sisaBayar == 0 ? 2 : 1,

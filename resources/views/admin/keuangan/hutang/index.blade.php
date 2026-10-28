@@ -40,10 +40,10 @@
                                         <tr>
                                             <th width="5%">No</th>
                                             <th width="15%">Tanggal Hutang</th>
+                                            <th width="15%">Lokasi</th>
                                             <th width="20%">Deskripsi</th>
                                             <th width="15%">Nominal</th>
-                                            <th width="18%">Status</th>
-                                            <th width="10%">Tanggal Pelunasan</th>
+                                            <th width="15%">Status</th>
                                             <th width="20%" class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -83,6 +83,17 @@
                             <div class="col-sm-4">
                                 <input type="date" class="form-control" id="tanggal_hutang" name="tanggal_hutang"
                                     value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="id_lokasi" class="col-sm-3 col-form-label">Lokasi</label>
+                            <div class="col-sm-5">
+                                <select class="form-select select-lokasi" name="id_lokasi" id="id_lokasi">
+                                    <option value=""></option>
+                                    @foreach ($lokasiList as $item)
+                                        <option value="{{ $item->id }}">{{ $item->nama_kavling }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -244,6 +255,13 @@
                 allowClear: true,
                 minimumResultsForSearch: Infinity,
             });
+            $('.select-lokasi').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modalForm'),
+                width: '100%',
+                placeholder: 'Pilih Lokasi',
+                allowClear: true,
+            });
         });
 
         var permissions = @json($permissions);
@@ -278,6 +296,12 @@
                         searchable: true
                     },
                     {
+                        data: 'lokasi',
+                        name: 'lokasi',
+                        orderable: false,
+                        searchable: true
+                    },
+                    {
                         data: 'deskripsi',
                         name: 'deskripsi',
                         orderable: false,
@@ -292,12 +316,6 @@
                     {
                         data: 'status',
                         name: 'status',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'tgl_pelunasan',
-                        name: 'tgl_pelunasan',
                         orderable: false,
                         searchable: false
                     },
@@ -331,6 +349,7 @@
                     $('#tanggal_hutang').val(response.data.tanggal_hutang);
                     $('#deskripsi').val(response.data.deskripsi);
                     $('#id_bank').val(response.data.id_bank).trigger('change');
+                    $('#id_lokasi').val(response.data.id_lokasi).trigger('change');
 
                     let nominal = parseFloat(response.data.nominal);
                     if (!isNaN(nominal)) {

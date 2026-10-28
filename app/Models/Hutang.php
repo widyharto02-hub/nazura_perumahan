@@ -16,6 +16,7 @@ class Hutang extends Model
         'tanggal_hutang',
         'deskripsi',
         'id_bank',
+        'id_lokasi',
         'nominal',
         'lampiran',
         'status',
@@ -23,4 +24,9 @@ class Hutang extends Model
         'sisa_bayar',
         'tgl_pelunasan',
     ];
+
+    public function lokasi()
+    {
+        return $this->belongsTo(LokasiKavling::class, 'id_lokasi');
+    }
 }

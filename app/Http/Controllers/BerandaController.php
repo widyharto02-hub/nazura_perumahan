@@ -38,7 +38,7 @@ class BerandaController extends Controller
                 ->whereHas('wawancara.customer', fn ($query) => $query->where('stt_arsip', 0))
                 ->count(),
             'ppjb' => PPJB::whereHas('customer', fn ($query) => $query->where('stt_arsip', 0))->count(),
-            'akad' => Akad::count(),
+            'akad' => AkadDetail::where('status', 2)->count(),
             'bast' => BAST::whereHas('customer', fn ($query) => $query->where('stt_arsip', 0))->count(),
         ];
 
@@ -74,7 +74,9 @@ class BerandaController extends Controller
                         ->whereHas('wawancara.customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))
                         ->count(),
                     'ppjb' => PPJB::whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))->count(),
-                    'akad' => AkadDetail::whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))->count(),
+                    'akad' => AkadDetail::where('status', 2)
+                        ->whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))
+                        ->count(),
                     'bast' => BAST::whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))->count(),
                 ];
             });
