@@ -231,6 +231,7 @@
                 <form id="formPencairanKpr">
                     @csrf
                     <input type="hidden" id="pencairan_primary_id" name="primary_id" value="{{ $customer->id }}">
+                    <input type="hidden" id="pencairan_id_pemasukan" value="">
                     <div class="modal-body">
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Tgl Pencairan</label>
@@ -1259,6 +1260,8 @@
 
         $('#modalPencairanKpr').on('hidden.bs.modal', function() {
             $('#formPencairanKpr')[0].reset();
+            $('#pencairan_id_pemasukan').val('');
+            $('#modalPencairanKprLabel').text('Pencairan KPR');
             $('.retensi-input').val('0');
             $('#total_retensi').val('');
             $('.is-invalid').removeClass('is-invalid');
@@ -1309,13 +1312,19 @@
             btnText.text('Menyimpan...');
             submitBtn.prop('disabled', true);
 
-            let id = $('#pencairan_primary_id').val();
-            let url = '{{ route('pembayaran.tambah-pencairan-kpr', ['id' => ':id']) }}'.replace(':id', id);
+            let idPemasukan = $('#pencairan_id_pemasukan').val();
+            let idCustomer = $('#pencairan_primary_id').val();
+            let url = idPemasukan
+                ? '{{ route('pembayaran.update-pencairan-kpr', ['id' => ':id']) }}'.replace(':id', idPemasukan)
+                : '{{ route('pembayaran.tambah-pencairan-kpr', ['id' => ':id']) }}'.replace(':id', idCustomer);
 
             $('.is-invalid').removeClass('is-invalid');
             $('.invalid-feedback').remove();
 
             let formData = new FormData(this);
+            if (idPemasukan) {
+                formData.append('_method', 'PUT');
+            }
 
             $.ajax({
                 url: url,
@@ -1327,7 +1336,7 @@
                     if (response.success) {
                         $('#modalPencairanKpr').modal('hide');
                         audio.play();
-                        toastr.success("Pencairan KPR berhasil ditambahkan!", "BERHASIL", {
+                        toastr.success(idPemasukan ? "Pencairan KPR berhasil diupdate!" : "Pencairan KPR berhasil ditambahkan!", "BERHASIL", {
                             progressBar: true,
                             timeOut: 3500,
                             positionClass: "toast-bottom-right",
@@ -1365,7 +1374,7 @@
                             );
                         });
                     } else {
-                        toastr.error("Gagal menambahkan pencairan KPR.", "GAGAL!", {
+                        toastr.error(idPemasukan ? "Gagal mengupdate pencairan KPR." : "Gagal menambahkan pencairan KPR.", "GAGAL!", {
                             progressBar: true,
                             timeOut: 3500,
                             positionClass: "toast-bottom-right"
@@ -1546,6 +1555,22 @@
                         let num = parseFloat(number);
                         return isNaN(num) ? '' : num.toLocaleString('id-ID');
                     };
+
+                    if (data.kategori && data.kategori.kategori === 'Pencairan KPR') {
+                        $('#pencairan_id_pemasukan').val(data.id);
+                        $('#tanggal_pencairan').val(data.tanggal);
+                        $('#jumlah_plafon').val(formatNumber(unformatNumber($('#estimasi_plafon').val())));
+                        $('#jumlah_pencairan').val(formatNumber(data.nominal));
+                        $('.retensi-input').val('0');
+                        (data.retensi_details || []).forEach(function(retensi) {
+                            $('[name="retensi[' + retensi.id_retensi + ']"]').val(formatNumber(retensi.nominal));
+                        });
+                        hitungTotalRetensi();
+                        $('#modalPencairanKprLabel').text('Edit Pencairan KPR');
+                        $('#submitBtnPencairanKpr .button-text').text('Simpan');
+                        $('#modalPencairanKpr').modal('show');
+                        return;
+                    }
 
                     $('#edit_id_pemasukan').val(data.id);
                     $('#edit_tanggal_pembayaran').val(data.tanggal);

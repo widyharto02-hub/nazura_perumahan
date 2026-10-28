@@ -14,6 +14,16 @@ class RetensiController extends Controller
     public function index()
     {
         $retensis = Retensi::orderBy('id')->get();
+        $idKategoriPencairanKpr = Pemasukan::idKategoriPencairanKpr();
+
+        if (! $idKategoriPencairanKpr) {
+            return view('admin.keuangan.retensi.index', compact('retensis'))->with('rows', collect())->with('totals', [
+                'plafon' => 0,
+                'pencairan' => 0,
+                'retensi' => [],
+                'total_retensi' => 0,
+            ]);
+        }
 
         $customerRows = Customer::query()
             ->select([
@@ -23,9 +33,9 @@ class RetensiController extends Controller
                 'lokasi_kavling.nama_kavling',
                 'kavling_peta.kode_kavling',
             ])
-            ->join('pemasukan', function ($join) {
+            ->join('pemasukan', function ($join) use ($idKategoriPencairanKpr) {
                 $join->on('pemasukan.id_customer', '=', 'customer.id')
-                    ->where('pemasukan.id_kategori_transaksi', 4);
+                    ->where('pemasukan.id_kategori_transaksi', $idKategoriPencairanKpr);
             })
             ->leftJoin('lokasi_kavling', 'lokasi_kavling.id', '=', 'customer.id_lokasi')
             ->leftJoin('kavling_peta', 'kavling_peta.id', '=', 'customer.id_kavling')
@@ -45,7 +55,7 @@ class RetensiController extends Controller
         $pencairanMap = Pemasukan::query()
             ->select('id_customer', DB::raw('SUM(nominal) as total_pencairan'))
             ->whereIn('id_customer', $customerIds)
-            ->where('id_kategori_transaksi', 4)
+            ->where('id_kategori_transaksi', $idKategoriPencairanKpr)
             ->groupBy('id_customer')
             ->pluck('total_pencairan', 'id_customer');
 
@@ -53,7 +63,7 @@ class RetensiController extends Controller
             ->select('pemasukan.id_customer', 'pemasukan_retensi.id_retensi', DB::raw('SUM(pemasukan_retensi.nominal) as total_nominal'))
             ->join('pemasukan', 'pemasukan.id', '=', 'pemasukan_retensi.id_pemasukan')
             ->whereIn('pemasukan.id_customer', $customerIds)
-            ->where('pemasukan.id_kategori_transaksi', 4)
+            ->where('pemasukan.id_kategori_transaksi', $idKategoriPencairanKpr)
             ->groupBy('pemasukan.id_customer', 'pemasukan_retensi.id_retensi')
             ->get();
 

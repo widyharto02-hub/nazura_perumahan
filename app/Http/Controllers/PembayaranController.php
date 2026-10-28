@@ -956,12 +956,18 @@ class PembayaranController extends Controller
 
             $no_kwitansi = $request->no_kwitansi ?? '';
 
-            if (empty($no_kwitansi) && $request->id_kategori_transaksi != 4 && $request->id_kategori_transaksi != 21) {
+            if (empty($no_kwitansi) && $request->id_kategori_transaksi != Pemasukan::idKategoriPencairanKpr() && $request->id_kategori_transaksi != 21) {
                 $no_kwitansi = $this->generator->generateNomorDokumen(
                     $cust->lokasi,
                     'no_kwitansi',
                     Pemasukan::class
                 );
+            }
+
+            $idKategoriPencairanKpr = Pemasukan::idKategoriPencairanKpr();
+
+            if (! $idKategoriPencairanKpr) {
+                throw new \RuntimeException('Kategori transaksi Pencairan KPR tidak ditemukan.');
             }
 
             $pemasukan = Pemasukan::create([
@@ -1094,7 +1100,7 @@ class PembayaranController extends Controller
                 'id_customer' => $id,
                 'id_bank' => 0,
                 'id_piutang' => 0,
-                'id_kategori_transaksi' => 4,
+                'id_kategori_transaksi' => $idKategoriPencairanKpr,
                 'no_kwitansi' => '',
                 'nominal' => $jumlahPencairan,
                 'keterangan' => 'Pencairan KPR',
@@ -1148,7 +1154,7 @@ class PembayaranController extends Controller
                 unlink(public_path('assets/keuangan/pemasukan/' . $pemasukan->lampiran));
             }
 
-            if ($pemasukan->id_kategori_transaksi != 4) {
+            if ($pemasukan->id_kategori_transaksi != Pemasukan::idKategoriPencairanKpr()) {
                 $nominal = $pemasukan->nominal;
 
                 $piutangs = Piutang::where('id_customer', $id_customer)
@@ -1214,9 +1220,99 @@ class PembayaranController extends Controller
         }
     }
 
+    public function updatePencairanKpr(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal_pencairan' => 'required|date',
+            'jumlah_plafon' => 'required',
+            'jumlah_pencairan' => 'required',
+        ], [
+            'tanggal_pencairan.required' => 'Tanggal pencairan wajib diisi.',
+            'jumlah_plafon.required' => 'Jumlah plafon wajib diisi.',
+            'jumlah_pencairan.required' => 'Jumlah pencairan wajib diisi.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $pemasukan = Pemasukan::findOrFail($id);
+            $idKategoriPencairanKpr = Pemasukan::idKategoriPencairanKpr();
+
+            if (! $idKategoriPencairanKpr || $pemasukan->id_kategori_transaksi != $idKategoriPencairanKpr) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data pencairan KPR tidak ditemukan.',
+                ], 404);
+            }
+
+            $customer = Customer::lockForUpdate()->findOrFail($pemasukan->id_customer);
+            $jumlahPlafon = (int) str_replace('.', '', $request->jumlah_plafon);
+            $jumlahPencairan = (int) str_replace('.', '', $request->jumlah_pencairan);
+            $retensiInput = $request->input('retensi', []);
+            $totalRetensi = 0;
+
+            foreach ($retensiInput as $nominal) {
+                $totalRetensi += (int) str_replace('.', '', $nominal ?? 0);
+            }
+
+            if ($jumlahPlafon !== ($jumlahPencairan + $totalRetensi)) {
+                return response()->json([
+                    'message' => 'Jumlah plafon harus sama dengan jumlah pencairan ditambah total retensi.',
+                ], 422);
+            }
+
+            if ($jumlahPlafon !== (int) ($customer->estimasi_plafon ?? 0)) {
+                return response()->json([
+                    'message' => 'Jumlah plafon harus sama dengan nilai estimasi plafon pada halaman pembayaran.',
+                ], 422);
+            }
+
+            $pemasukan->update([
+                'tanggal' => $request->tanggal_pencairan,
+                'nominal' => $jumlahPencairan,
+                'keterangan' => 'Pencairan KPR',
+                'keterangan_kategori' => 'Pencairan KPR',
+                'disetujui_owner_pada' => null,
+                'disetujui_owner_oleh' => null,
+            ]);
+
+            PemasukanRetensi::where('id_pemasukan', $pemasukan->id)->delete();
+
+            foreach ($retensiInput as $retensiId => $nominal) {
+                $nilaiRetensi = (int) str_replace('.', '', $nominal ?? 0);
+                if ($nilaiRetensi > 0) {
+                    PemasukanRetensi::create([
+                        'id_pemasukan' => $pemasukan->id,
+                        'id_retensi' => $retensiId,
+                        'nominal' => $nilaiRetensi,
+                    ]);
+                }
+            }
+
+            $this->logEdit('Pencairan KPR', $pemasukan->id);
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'jumlah_bayar' => number_format($this->getJumlahBayarCustomer($customer->id), 0, ',', '.'),
+                'total_tagihan' => number_format($this->getTotalTagihanCustomer($customer->id), 0, ',', '.'),
+                'sisa_bayar' => number_format($this->getSisaBayarCustomer($customer->id), 0, ',', '.'),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupdate pencairan KPR',
+            ], 500);
+        }
+    }
+
     public function editPemasukan($id)
     {
-        $pemasukan = Pemasukan::with(['kategori', 'bank'])->findOrFail($id);
+        $pemasukan = Pemasukan::with(['kategori', 'bank', 'retensiDetails'])->findOrFail($id);
 
         return response()->json([
             'status' => 'success',
@@ -1522,7 +1618,7 @@ class PembayaranController extends Controller
 
                     $pencairan = Pemasukan::where('id_customer', $customerId)
                         ->where('keterangan', 'NOT LIKE', 'GANTI NAMA%')
-                        ->where('id_kategori_transaksi', 4)
+                        ->where('id_kategori_transaksi', Pemasukan::idKategoriPencairanKpr())
                         ->sum('nominal');
 
                     return '

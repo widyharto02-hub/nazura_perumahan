@@ -33,4 +33,9 @@ class Pemasukan extends Model
     {
         return $this->hasMany(PemasukanRetensi::class, 'id_pemasukan');
     }
+
+    public static function idKategoriPencairanKpr(): ?int
+    {
+        return KategoriTransaksi::where('kategori', 'Pencairan KPR')->value('id');
+    }
 }

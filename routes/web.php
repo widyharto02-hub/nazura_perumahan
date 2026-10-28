@@ -207,6 +207,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('pembayaran/tambah-tagihan/{id}', 'tambahTagihan')->name('pembayaran.tambah-tagihan');
         Route::post('pembayaran/tambah-pemasukan/{id}', 'tambahPemasukan')->name('pembayaran.tambah-pemasukan');
         Route::post('pembayaran/tambah-pencairan-kpr/{id}', 'tambahPencairanKpr')->name('pembayaran.tambah-pencairan-kpr');
+        Route::put('pembayaran/update-pencairan-kpr/{id}', 'updatePencairanKpr')->name('pembayaran.update-pencairan-kpr');
 
         Route::delete('pembayaran/delete-tagihan/{id}', 'DeleteTagihan')->name('pembayaran.delete-tagihan');
         Route::put('pembayaran/update-tagihan/{id}', 'updateTagihan')->name('pembayaran.update-tagihan');
