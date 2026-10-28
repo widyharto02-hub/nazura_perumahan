@@ -528,6 +528,7 @@ class PembayaranController extends Controller
         $metodeBayar                = MetodeBayar::all();
         $bankList                   = Bank::all();
         $kategoriTransaksiPemasukan = KategoriTransaksi::where('jenis_kategori', 'PEMASUKAN')
+            ->where('kategori', '!=', 'Pencairan KPR')
             ->get();
 
         $kategoriTransaksiTagihan = KategoriTransaksi::orderBy('kategori')->get();
