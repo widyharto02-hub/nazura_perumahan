@@ -90,34 +90,17 @@
                         <!-- ================================================================================================== -->
 
                         <div class="card card-primary card-outline card-outline-tabs">
-                            <div class="card-header p-0 border-bottom-0">
-                                <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
-                                    @foreach ($lokasiKavling as $index => $kav)
-                                        <li class="nav-item">
-                                            <a class="nav-link {{ $index == 0 ? 'active' : '' }}"
-                                                id="custom-tabs-four-{{ $kav->id }}-tab" data-toggle="pill"
-                                                href="#custom-tabs-four-{{ $kav->id }}" role="tab">
-                                                {{ $kav->nama_kavling }}
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
+                            <div class="card-header">
+                                @include('admin.siteplan.selector', ['printRoute' => 'siteplan-penjualan'])
                             </div>
 
                             <div class="card-body">
-                                <div class="tab-content" id="custom-tabs-four-tabContent">
+                                <div id="siteplan-content">
+                                    @if (!$selectedLocation)
+                                        <p class="text-muted mb-0">Belum ada lokasi siteplan.</p>
+                                    @endif
                                     @foreach ($lokasiKavling as $index => $kav)
-                                        <div class="tab-pane fade {{ $index == 0 ? 'show active' : '' }}"
-                                            id="custom-tabs-four-{{ $kav->id }}" role="tabpanel">
-
-                                            <a href="{{ route('siteplan-penjualan.cetak.pdf', $kav->id) }}" target="_blank"
-                                                class="btn btn-danger btn-sm mr-1">
-                                                <i class="fas fa-file-pdf mr-1"></i> Cetak Denah PDF
-                                            </a>
-                                            <a href="{{ route('siteplan-penjualan.cetak.jpg', $kav->id) }}" target="_blank"
-                                                class="btn btn-primary btn-sm">
-                                                <i class="fas fa-file-image mr-1"></i> Download Denah JPG
-                                            </a>
+                                        <div id="siteplan-location-{{ $kav->id }}">
 
                                             {{-- SVG Container khusus lokasi ini --}}
                                             <div class="svg-container mt-3">
@@ -132,7 +115,7 @@
                                                 @endif
 
                                                 {{-- Loop kavling --}}
-                                                @foreach ($kav->kavlingPeta as $pt)
+                                                @foreach ($kav->masterSvg ? $kav->kavlingPeta : collect() as $pt)
                                                     @php
                                                         $warna = '#ffffff';
 

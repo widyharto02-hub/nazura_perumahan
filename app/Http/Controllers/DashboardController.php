@@ -27,7 +27,8 @@ class DashboardController extends Controller
         $totalKavling  = KavlingPeta::count();
         $totalCustomer = Customer::count();
         $merah        = Customer::where('id_status_progres', 2)->count();
-        $hijau         = Customer::where('id_status_progres', 7)->count();
+        app(\App\Http\Controllers\Transaksi\AkadController::class)->refreshDeadlineAkad();
+        $hijau         = Wawancara::prosesBankAktif()->count();
         $ungu           = Customer::where('id_status_progres', 3)->count();
 
         $kolomStatus = ProgresListPenjualan::where('stt_tampil', 1)
@@ -363,9 +364,10 @@ class DashboardController extends Controller
 
     public function wawancara(Request $request)
     {
+        app(\App\Http\Controllers\Transaksi\AkadController::class)->refreshDeadlineAkad();
         if ($request->ajax()) {
             $data = Customer::with(['lokasi', 'progres'])
-                ->whereIn('id_status_progres', [18]);
+                ->whereIn('id', Wawancara::prosesBankAktif()->select('id_customer'));
 
             return datatables()->of($data)
                 ->addIndexColumn()

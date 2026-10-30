@@ -70,43 +70,6 @@
             padding-bottom: 30px;
         }
 
-        .sidebar-fixed-bottom {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 250px;
-            background: #343a40;
-            border-top: 1px solid rgba(255, 255, 255, .1);
-            z-index: 1030;
-        }
-
-        .sidebar-fixed-bottom .nav-link p {
-            margin: 0;
-            line-height: 1;
-        }
-
-        .sidebar-fixed-bottom .nav-icon {
-            margin-right: 10px;
-            line-height: 1;
-        }
-
-
-        .sidebar-fixed-bottom .nav-link {
-            color: #c2c7d0;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-fixed-bottom .nav-link:hover {
-            background-color: #6610f2;
-            color: #fff;
-        }
-
-        .sidebar-fixed-bottom .nav-icon {
-            margin-right: 10px;
-        }
-
         .theme-switch {
             display: inline-flex;
             align-items: center;
@@ -214,6 +177,7 @@
             background-color: #374151;
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('assets/css/nazura-theme.css') }}?v={{ filemtime(public_path('assets/css/nazura-theme.css')) }}">
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -234,7 +198,7 @@
 
 
         <!-- Navbar -->
-        <nav class="main-header navbar navbar-expand navbar-light bg-indigo">
+        <nav class="main-header navbar navbar-expand navbar-dark nazura-navbar">
             <ul class="navbar-nav d-flex align-items-center" style="margin-left: 5px;">
                 <li class="nav-item">
                     <a class="nav-link text-white" data-widget="pushmenu" href="#" role="button">
@@ -343,7 +307,19 @@
                                 }
                             @endphp
 
-                            @if ($children->isEmpty())
+                            @if ($children->isNotEmpty() && $children->every(fn ($child) => in_array($child->route_name, \App\Services\SiteplanSelection::ROUTES, true)))
+                                @php
+                                    $siteplanEntry = $children->firstWhere('route_name', 'siteplan-penjualan.index') ?? $children->first();
+                                @endphp
+                                <li class="nav-item">
+                                    <a href="{{ route($siteplanEntry->route_name) }}"
+                                        class="nav-link {{ $isActiveParent ? 'active' : '' }}"
+                                        style="{{ $isActiveParent ? 'background-color: var(--nazura-primary) !important; color: #ffffff !important;' : '' }}">
+                                        <i class="nav-icon fas {{ $menu->icon }}"></i>
+                                        <p>{{ $menu->title }}</p>
+                                    </a>
+                                </li>
+                            @elseif ($children->isEmpty())
                                 @php
                                     $isActiveSingle =
                                         request()->routeIs($menu->route_name . '*') ||
@@ -353,7 +329,7 @@
                                 <li class="nav-item">
                                     <a href="{{ route($menu->route_name) }}"
                                         class="nav-link {{ $isActiveSingle ? '' : '' }}"
-                                        style="{{ $isActiveSingle ? 'background-color: #6610f2 !important; color: #ffffff !important;' : '' }}">
+                                        style="{{ $isActiveSingle ? 'background-color: var(--nazura-primary) !important; color: #ffffff !important;' : '' }}">
                                         <i class="nav-icon fas {{ $menu->icon }}"
                                             style="{{ $isActiveSingle ? 'color: #ffffff !important;' : '' }}"></i>
                                         <p style="{{ $isActiveSingle ? 'color: #ffffff !important;' : '' }}">
@@ -363,7 +339,7 @@
                             @else
                                 <li class="nav-item {{ $isActiveParent ? 'menu-open' : '' }}">
                                     <a href="#" class="nav-link {{ $isActiveParent ? 'active' : '' }}"
-                                        style="{{ $isActiveParent ? 'background-color: #6610f2 !important; color: #ffffff !important;' : '' }}">
+                                        style="{{ $isActiveParent ? 'background-color: var(--nazura-primary) !important; color: #ffffff !important;' : '' }}">
                                         <i class="nav-icon fas {{ $menu->icon }}"
                                             style="{{ $isActiveParent ? 'color: #ffffff !important;' : '' }}"></i>
                                         <p style="{{ $isActiveParent ? 'color: #ffffff !important;' : '' }}">
@@ -398,12 +374,6 @@
                         </form>
                     </ul>
                 </nav>
-                <div class="sidebar-fixed-bottom">
-                    <a href="{{ route('panduan-aplikasi.index') }}" target="_blank" class="nav-link">
-                        <i class="nav-icon fas fa-info-circle"></i>
-                        <p>Panduan Aplikasi</p>
-                    </a>
-                </div>
 
                 <!-- /.sidebar-menu -->
             </div>

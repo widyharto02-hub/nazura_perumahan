@@ -1,5 +1,17 @@
 @extends('admin.layout_admin')
 @section('content')
+    <style>
+        #modalForm .utility-body { background: #f4f6fa; }
+        #modalForm .utility-section { background: #fff; border: 1px solid #e3e8ef; border-radius: 12px; padding: 20px; }
+        #modalForm .attachment-tile { height: 140px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #modalForm .attachment-tile button { width: 100%; height: 100%; border: 0; background: transparent; padding: 8px; }
+        #modalForm .attachment-tile img { width: 100%; height: 100%; object-fit: contain; }
+        #modalForm .modal-footer { background: #fff; }
+        #attachmentPreview { position: fixed; inset: 0; z-index: 1080; background: rgba(15,23,42,.9); padding: 24px; }
+        #attachmentPreview .preview-content { height: calc(100% - 56px); display: flex; justify-content: center; align-items: center; }
+        #attachmentPreview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #attachmentPreview iframe { width: 100%; height: 100%; border: 0; background: white; }
+    </style>
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <section class="content-header">
@@ -56,7 +68,7 @@
     <!-- Modal -->
     <div class="modal fade" id="modalForm" tabindex="-1" role="dialog" aria-labelledby="modalFormLabel" aria-hidden="true"
         data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-indigo">
                     <h5 class="modal-title text-white font-weight-bold" id="modalFormLabel"></h5>
@@ -67,85 +79,88 @@
                 <form id="formData" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" id="primary_id" name="primary_id">
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <label for="id_lokasi" class="col-sm-3 col-form-label">Lokasi Perumahan</label>
-                            <div class="col-sm-3">
-                                <select name="id_lokasi" id="id_lokasi" class="form-control select-lokasi">
-                                    <option value=""></option>
-                                    @foreach ($lokasi as $l)
-                                        <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <label for="id_kavling" class="col-sm-1 col-form-label">Blok / Unit</label>
-                            <div class="col-sm-2">
-                                <select name="id_kavling" id="id_kavling" class="form-control select-kavling"></select>
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <div class="form-group row mb-3">
-                            <label for="nama" class="col-sm-3 col-form-label">No. Rekening Listrik</label>
-                            <div class="col-sm-3">
-                                <input type="text" id="norek_listrik" class="form-control" name="norek_listrik">
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Foto Meteran Listrik 1</label>
-                            <div class="col-sm-3">
-                                <input type="file" class="mb-2" id="foto_listrik" name="foto_listrik"
-                                    accept=".jpg, .jpeg, .png, .pdf">
-                                <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
-                                    id="previewFotoListrik1"
-                                    style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
-                                    <span style="color: #6c757d;">Tidak ada foto</span>
+                    <div class="modal-body utility-body">
+                        <div class="alert alert-light border mb-4"><i class="fas fa-info-circle text-primary mr-2"></i>Isi listrik atau air terlebih dahulu, lalu lengkapi melalui Edit. Lampiran bersifat opsional.</div>
+                        <section class="utility-section mb-4">
+                            <h6 class="font-weight-bold mb-3"><i class="fas fa-map-marker-alt text-primary mr-2"></i>Lokasi unit</h6>
+                            <div class="row">
+                                <div class="form-group col-md-7 mb-md-0">
+                                    <label for="id_lokasi">Lokasi perumahan</label>
+                                    <select name="id_lokasi" id="id_lokasi" class="form-control select-lokasi" style="width:100%">
+                                        <option value=""></option>
+                                        @foreach ($lokasi as $l)
+                                            <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-5 mb-0">
+                                    <label for="id_kavling">Blok / Unit</label>
+                                    <select name="id_kavling" id="id_kavling" class="form-control select-kavling" style="width:100%"></select>
+                                    <small id="unitHelp" class="text-muted d-block mt-2">Hanya unit yang belum memiliki data ditampilkan.</small>
                                 </div>
                             </div>
-                            <label class="col-sm-3 col-form-label">Foto Meteran Listrik 2</label>
-                            <div class="col-sm-3">
-                                <input type="file" class="mb-2" id="foto_listrik_2" name="foto_listrik_2"
-                                    accept=".jpg, .jpeg, .png, .pdf">
-                                <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
-                                    id="previewFotoListrik2"
-                                    style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
-                                    <span style="color: #6c757d;">Tidak ada foto</span>
+                        </section>
+                        <div class="row">
+                            <div class="col-lg-6 mb-3"><section class="utility-section h-100">
+                                <h6 class="font-weight-bold mb-3"><i class="fas fa-bolt text-primary mr-2"></i>Listrik</h6>
+                                <div class="form-group"><label for="norek_listrik">Nomor rekening listrik</label>
+                                    <input type="text" maxlength="35" id="norek_listrik" name="norek_listrik" class="form-control" placeholder="Masukkan nomor rekening">
                                 </div>
-                            </div>
-                        </div>
-                        <hr>
-
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label" for="norek_air">No. Rekening Air</label>
-                            <div class="col-sm-3">
-                                <input id="norek_air" name="norek_air" type="text" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-3 col-form-label">Foto Meteran Air 1</label>
-                            <div class="col-sm-3">
-                                <input type="file" class="mb-2" id="foto_air" name="foto_air"
-                                    accept=".jpg, .jpeg, .png, .pdf">
-                                <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
-                                    id="previewFotoAir1"
-                                    style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
-                                    <span style="color: #6c757d;">Tidak ada foto</span>
+                                <div class="row">
+                                    <div class="col-sm-6 mb-3">
+                                        <label for="foto_listrik" class="small font-weight-bold">Meteran listrik 1</label>
+                                        <div class="attachment-tile" data-field="foto_listrik"><span class="text-muted small">Belum ada lampiran</span></div>
+                                        <input type="hidden" name="remove_foto_listrik" id="remove_foto_listrik" value="0">
+                                        <input type="file" class="sr-only utility-file" id="foto_listrik" name="foto_listrik" accept=".jpg,.jpeg,.png,.pdf">
+                                        <div class="d-flex mt-2">
+                                            <label for="foto_listrik" class="btn btn-sm btn-outline-primary mb-0 mr-1 flex-fill attachment-upload">Unggah / Ganti</label>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-attachment" data-field="foto_listrik" aria-label="Hapus lampiran meteran listrik 1" disabled><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label for="foto_listrik_2" class="small font-weight-bold">Meteran listrik 2</label>
+                                        <div class="attachment-tile" data-field="foto_listrik_2"><span class="text-muted small">Belum ada lampiran</span></div>
+                                        <input type="hidden" name="remove_foto_listrik_2" id="remove_foto_listrik_2" value="0">
+                                        <input type="file" class="sr-only utility-file" id="foto_listrik_2" name="foto_listrik_2" accept=".jpg,.jpeg,.png,.pdf">
+                                        <div class="d-flex mt-2">
+                                            <label for="foto_listrik_2" class="btn btn-sm btn-outline-primary mb-0 mr-1 flex-fill attachment-upload">Unggah / Ganti</label>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-attachment" data-field="foto_listrik_2" aria-label="Hapus lampiran meteran listrik 2" disabled><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <label class="col-sm-3 col-form-label">Foto Meteran Air 2</label>
-                            <div class="col-sm-3">
-                                <input type="file" class="mb-2" id="foto_air_2" name="foto_air_2"
-                                    accept=".jpg, .jpeg, .png, .pdf">
-                                <div class="img-thumbnail mb-2 d-flex align-items-center justify-content-center"
-                                    id="previewFotoAir2"
-                                    style="max-width: 150px; height: 150px; background-color: #f8f9fa; border: 1px solid #dee2e6; overflow: hidden;">
-                                    <span style="color: #6c757d;">Tidak ada foto</span>
+                                <small class="text-muted">JPG, PNG, atau PDF. Maksimal 2 MB per lampiran.<br>Klik lampiran untuk melihat pratinjau.</small>
+                            </section></div>
+                            <div class="col-lg-6 mb-3"><section class="utility-section h-100">
+                                <h6 class="font-weight-bold mb-3"><i class="fas fa-tint text-primary mr-2"></i>Air</h6>
+                                <div class="form-group"><label for="norek_air">Nomor rekening air</label>
+                                    <input type="text" maxlength="35" id="norek_air" name="norek_air" class="form-control" placeholder="Masukkan nomor rekening">
                                 </div>
-                            </div>
+                                <div class="row">
+                                    <div class="col-sm-6 mb-3">
+                                        <label for="foto_air" class="small font-weight-bold">Meteran air 1</label>
+                                        <div class="attachment-tile" data-field="foto_air"><span class="text-muted small">Belum ada lampiran</span></div>
+                                        <input type="hidden" name="remove_foto_air" id="remove_foto_air" value="0">
+                                        <input type="file" class="sr-only utility-file" id="foto_air" name="foto_air" accept=".jpg,.jpeg,.png,.pdf">
+                                        <div class="d-flex mt-2">
+                                            <label for="foto_air" class="btn btn-sm btn-outline-primary mb-0 mr-1 flex-fill attachment-upload">Unggah / Ganti</label>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-attachment" data-field="foto_air" aria-label="Hapus lampiran meteran air 1" disabled><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label for="foto_air_2" class="small font-weight-bold">Meteran air 2</label>
+                                        <div class="attachment-tile" data-field="foto_air_2"><span class="text-muted small">Belum ada lampiran</span></div>
+                                        <input type="hidden" name="remove_foto_air_2" id="remove_foto_air_2" value="0">
+                                        <input type="file" class="sr-only utility-file" id="foto_air_2" name="foto_air_2" accept=".jpg,.jpeg,.png,.pdf">
+                                        <div class="d-flex mt-2">
+                                            <label for="foto_air_2" class="btn btn-sm btn-outline-primary mb-0 mr-1 flex-fill attachment-upload">Unggah / Ganti</label>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-attachment" data-field="foto_air_2" aria-label="Hapus lampiran meteran air 2" disabled><i class="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">JPG, PNG, atau PDF. Maksimal 2 MB per lampiran.<br>Klik lampiran untuk melihat pratinjau.</small>
+                            </section></div>
                         </div>
+                        <small class="text-muted">Penghapusan dan penggantian lampiran diterapkan setelah Anda menekan Simpan.</small>
                     </div>
 
                     <div class="modal-footer">
@@ -160,20 +175,77 @@
             </div>
         </div>
     </div>
+    <div id="attachmentPreview" class="d-none" role="dialog" aria-modal="true" aria-label="Pratinjau lampiran">
+        <div class="d-flex align-items-center justify-content-between mb-3 text-white"><strong>Pratinjau lampiran</strong><button type="button" id="closeAttachmentPreview" class="btn btn-light btn-sm">Tutup <i class="fas fa-times ml-1"></i></button></div>
+        <div class="preview-content"></div>
+    </div>
 @endsection
 @push('scripts')
     <script>
-        previewFile('foto_listrik', 'previewFotoListrik1');
-        previewFile('foto_listrik_2', 'previewFotoListrik2');
-        previewFile('foto_air', 'previewFotoAir1');
-        previewFile('foto_air_2', 'previewFotoAir2');
+        const attachments = {
+            foto_listrik: 'listrik_1', foto_listrik_2: 'listrik_2',
+            foto_air: 'air_1', foto_air_2: 'air_2'
+        };
+        const attachmentUrls = {};
+        const attachmentBase = @json(asset('assets/legal/listrik_air'));
+        function renderAttachment(field, url = '', pdf = false) {
+            const tile = $('.attachment-tile[data-field="' + field + '"]').empty();
+            const old = attachmentUrls[field];
+            if (old && old.url.startsWith('blob:')) URL.revokeObjectURL(old.url);
+            attachmentUrls[field] = {url, pdf};
+            $('.remove-attachment[data-field="' + field + '"]').prop('disabled', !url);
+            if (!url) return tile.append($('<span class="text-muted small">').text('Belum ada lampiran'));
+            const button = $('<button type="button" class="open-attachment" aria-label="Lihat pratinjau lampiran">').attr('data-field', field);
+            button.append(pdf ? $('<span class="text-primary"><i class="fas fa-file-pdf fa-2x d-block mb-2"></i>Lihat PDF</span>') : $('<img alt="Lampiran meteran">').attr('src', url));
+            tile.append(button);
+        }
+        $('.utility-file').on('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024 || !/\.(jpe?g|png|pdf)$/i.test(file.name)) {
+                this.value = '';
+                toastr.error('Gunakan JPG, PNG, atau PDF maksimal 2 MB.');
+                return;
+            }
+            $('#remove_' + this.id).val('0');
+            renderAttachment(this.id, URL.createObjectURL(file), /\.pdf$/i.test(file.name));
+        });
+        $('.remove-attachment').on('click', function() {
+            const field = $(this).data('field');
+            $('#' + field).val('');
+            $('#remove_' + field).val('1');
+            renderAttachment(field);
+        });
+        let previewTrigger;
+        $('#attachmentPreview').appendTo('#modalForm');
+        $('.attachment-tile').on('click', '.open-attachment', function() {
+            const item = attachmentUrls[$(this).data('field')];
+            if (!item || !item.url) return;
+            previewTrigger = this;
+            const content = $('#attachmentPreview .preview-content').empty();
+            content.append(item.pdf ? $('<iframe title="Pratinjau PDF">').attr('src', item.url) : $('<img alt="Pratinjau lampiran meteran">').attr('src', item.url));
+            $('#attachmentPreview').removeClass('d-none');
+            $('#closeAttachmentPreview').trigger('focus');
+        });
+        function closeAttachmentPreview() {
+            $('#attachmentPreview').addClass('d-none').find('.preview-content').empty();
+            if (previewTrigger) previewTrigger.focus();
+        }
+        $('#closeAttachmentPreview').on('click', closeAttachmentPreview);
+        $(document).on('keydown', function(event) {
+            if ($('#attachmentPreview').hasClass('d-none')) return;
+            if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); closeAttachmentPreview(); }
+            if (event.key === 'Tab') { event.preventDefault(); $('#closeAttachmentPreview').trigger('focus'); }
+        });
 
         $(document).ready(function() {
             $('.select-lokasi').select2({
+                dropdownParent: $('#modalForm'),
                 theme: "bootstrap4",
                 placeholder: "Pilih Lokasi",
             });
             $('.select-kavling').select2({
+                dropdownParent: $('#modalForm'),
                 theme: "bootstrap4",
                 placeholder: "Pilih Blok / Unit",
             });
@@ -183,21 +255,25 @@
             $('#modalFormLabel').text('Tambah Listrik dan Air');
         });
 
-        const routeGetKavling = "{{ route('customer.getKavling', ':id') }}";
+        const routeGetKavling = "{{ route('listrik-air.units') }}";
 
-        $('#id_lokasi').on('change', function() {
+        let kavlingRequest;
+        $('#id_lokasi').on('change', function(event, selectedKavling) {
+            if (kavlingRequest) kavlingRequest.abort();
             let idLokasi = $(this).val();
-            $('#id_kavling').html('<option value="">Loading...</option>').trigger('change');
+            $('#id_kavling').prop('disabled', false).empty().append(new Option('', '')).trigger('change');
 
             if (idLokasi) {
-                const urlKavling = routeGetKavling.replace(':id', idLokasi);
-                $.get(urlKavling, function(data) {
-                    let options = '<option value=""></option>';
+                $('#id_kavling').prop('disabled', true);
+                $('#unitHelp').text('Memuat unit...');
+                kavlingRequest = $.get(routeGetKavling, {id_lokasi: idLokasi, except_id: $('#primary_id').val()}, function(data) {
                     data.forEach(function(item) {
-                        options +=
-                            `<option value="${item.id}">${item.kode_kavling}</option>`;
+                        $('#id_kavling').append(new Option(item.kode_kavling, item.id));
                     });
-                    $('#id_kavling').html(options).trigger('change');
+                    $('#id_kavling').prop('disabled', false).val(selectedKavling || '').trigger('change');
+                    $('#unitHelp').text(data.length ? 'Unit yang sudah terdaftar tidak dapat ditambahkan lagi.' : 'Tidak ada unit tersedia di lokasi ini.');
+                }).fail(function(xhr, status) {
+                    if (status !== 'abort') $('#unitHelp').text('Gagal memuat unit. Pilih ulang lokasi untuk mencoba lagi.');
                 });
             }
         });
@@ -262,22 +338,16 @@
                 if (response.status === 'success') {
                     $('#modalFormLabel').text('Edit Listrik dan Air');
                     $('#primary_id').val(response.data.id);
-                    $('#id_lokasi').val(response.data.id_lokasi).trigger('change');
-
-                    setTimeout(function() {
-                        $('#id_kavling').val(response.data.id_kavling).trigger('change');
-                    }, 300);
+                    $('#id_lokasi').val(response.data.id_lokasi)
+                        .trigger('change', [response.data.id_kavling]);
 
                     $('#norek_listrik').val(response.data.norek_listrik);
                     $('#norek_air').val(response.data.norek_air);
 
-                    setPreview(response.data.foto_listrik, 'assets/legal/listrik_air/listrik_1',
-                        'previewFotoListrik1');
-                    setPreview(response.data.foto_listrik_2, 'assets/legal/listrik_air/listrik_2',
-                        'previewFotoListrik2');
-                    setPreview(response.data.foto_air, 'assets/legal/listrik_air/air_1', 'previewFotoAir1');
-                    setPreview(response.data.foto_air_2, 'assets/legal/listrik_air/air_2',
-                        'previewFotoAir2');
+                    Object.entries(attachments).forEach(([field, folder]) => {
+                        const name = response.data[field];
+                        renderAttachment(field, name ? attachmentBase + '/' + folder + '/' + encodeURIComponent(name) : '', /\.pdf$/i.test(name || ''));
+                    });
 
                     $('#modalForm').modal('show');
                 }
@@ -300,16 +370,9 @@
             btnText.text('Simpan');
             submitBtn.prop('disabled', false);
 
-            const previews = [
-                '#previewFotoListrik1',
-                '#previewFotoListrik2',
-                '#previewFotoAir1',
-                '#previewFotoAir2'
-            ];
-
-            previews.forEach(id => {
-                $(id).html('<span style="color: #6c757d;">Tidak ada berkas</span>');
-            });
+            closeAttachmentPreview();
+            Object.keys(attachments).forEach(field => renderAttachment(field));
+            $('#unitHelp').text('Hanya unit yang belum memiliki data ditampilkan.');
         });
 
         // Simpan / Update data
@@ -352,6 +415,10 @@
                     $('.data-table').DataTable().ajax.reload();
                 },
                 error: function(xhr) {
+                    spinner.addClass('d-none');
+                    btnText.text('Simpan');
+                    submitBtn.prop('disabled', false);
+                    if (xhr.status !== 422) toastr.error('Data gagal disimpan. Silakan coba lagi.');
                     if (xhr.status === 422) {
                         audio.play();
                         toastr.error("Ada inputan yang salah!", "GAGAL!", {

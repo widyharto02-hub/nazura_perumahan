@@ -26,13 +26,13 @@ class BerandaController extends Controller
 {
     public function index(Request $request)
     {
+        app(\App\Http\Controllers\Transaksi\AkadController::class)->refreshDeadlineAkad();
         $username = Auth::user()->username;
 
         $pipelineCounts = [
             'booking' => PengajuanHold::where('stt_reg', '!=', 2)->count(),
             'sppr' => SPPR::count(),
-            'wawancara' => Wawancara::where('status', 1)
-                ->whereHas('customer', fn ($query) => $query->where('stt_arsip', 0))
+            'wawancara' => Wawancara::prosesBankAktif()
                 ->count(),
             'acc_bank' => WawancaraSp3k::where('status', 1)
                 ->whereHas('wawancara.customer', fn ($query) => $query->where('stt_arsip', 0))
@@ -67,7 +67,7 @@ class BerandaController extends Controller
                     'total_unit' => KavlingPeta::where('id_lokasi', $lokasiId)->count(),
                     'booking' => PengajuanHold::where('id_lokasi', $lokasiId)->where('stt_reg', '!=', 2)->count(),
                     'sppr' => SPPR::whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))->count(),
-                    'wawancara' => Wawancara::where('status', 1)
+                    'wawancara' => Wawancara::prosesBankAktif()
                         ->whereHas('customer', fn ($query) => $query->where('id_lokasi', $lokasiId)->where('stt_arsip', 0))
                         ->count(),
                     'acc_bank' => WawancaraSp3k::where('status', 1)

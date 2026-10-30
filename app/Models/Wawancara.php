@@ -8,6 +8,18 @@ class Wawancara extends Model
     protected $table = 'wawancara';
     public $timestamps = false;
 
+    public function scopeProsesBankAktif($query)
+    {
+        $sudahAkad = AkadDetail::where('status', 2)
+            ->whereIn('id_akad', Akad::select('id'))
+            ->whereNotNull('id_customer')
+            ->select('id_customer');
+
+        return $query->where('status', 1)
+            ->whereHas('customer', fn ($customer) => $customer
+                ->where('stt_arsip', 0)->whereNotIn('id', $sudahAkad));
+    }
+
     protected $fillable = [
         'tgl_wawancara',
         'id_customer',

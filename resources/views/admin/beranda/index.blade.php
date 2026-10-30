@@ -10,8 +10,8 @@
       --text: #111827;
       --muted: #6b7280;
       --line: #e5e7eb;
-      --primary: #5b2cff;
-      --primary-soft: #ede9fe;
+      --primary: var(--nazura-primary);
+      --primary-soft: var(--nazura-soft);
       --shadow: 0 10px 30px rgba(17, 24, 39, .07);
       --radius: 18px;
     }
@@ -136,7 +136,7 @@
     .blue { background: linear-gradient(135deg,#0ea5e9,#2563eb); }
     .green { background: linear-gradient(135deg,#22c55e,#15803d); }
     .orange { background: linear-gradient(135deg,#f59e0b,#f97316); }
-    .purple { background: linear-gradient(135deg,#7c3aed,#4f46e5); }
+    .purple { background: linear-gradient(135deg,#5067b5,#324697); }
     .red { background: linear-gradient(135deg,#fb7185,#e11d48); }
 
     .kpi-label {
@@ -343,7 +343,7 @@
       padding: 3px 7px;
       border-radius: 6px;
       background: #eef2ff;
-      color: #4338ca;
+      color: #324697;
       font-weight: 700;
       margin-right: 5px;
     }
@@ -356,9 +356,9 @@
     }
 
     .detail-btn {
-      border: 1px solid #c7d2fe;
+      border: 1px solid #d9e0f7;
       background: #fff;
-      color: #4f46e5;
+      color: #324697;
       border-radius: 9px;
       padding: 7px 12px;
       font-weight: 700;
@@ -406,8 +406,8 @@
       min-height: 8px;
     }
 
-    .bar.target { background: #ddd6fe; }
-    .bar.actual { background: #5b2cff; }
+    .bar.target { background: #d9e0f7; }
+    .bar.actual { background: #324697; }
 
     .bar-label {
       position: absolute;
@@ -486,10 +486,10 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background: linear-gradient(135deg,#c7d2fe,#fbcfe8);
+      background: linear-gradient(135deg,#d9e0f7,#edf0fa);
       display: grid;
       place-items: center;
-      color: #4f46e5;
+      color: #324697;
       font-weight: 800;
       flex: 0 0 auto;
     }
@@ -618,7 +618,7 @@
           <div class="kpi-icon purple"><i class="fa-regular fa-credit-card"></i></div>
           <div>
             <div class="kpi-label">Piutang</div>
-            <div class="kpi-value money" style="color:#5b2cff">Rp {{ number_format($summaryMetrics['piutang'] ?? 0, 0, ',', '.') }}</div>
+            <div class="kpi-value money" style="color:#324697">Rp {{ number_format($summaryMetrics['piutang'] ?? 0, 0, ',', '.') }}</div>
             <div class="kpi-note">Total {{ $summaryMetrics['piutang_customer'] ?? 0 }} customer</div>
           </div>
         </article>

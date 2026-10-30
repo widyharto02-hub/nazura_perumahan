@@ -8,16 +8,15 @@ use App\Models\LokasiKavling;
 use App\Models\Pemasukan;
 use App\Models\Piutang;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use TCPDF;
 
 class SiteplanBalikNamaController extends Controller
 {
     public function index()
     {
-        $lokasiKavling = LokasiKavling::orderBy('urutan', 'asc')->get();
+        $selection = \App\Services\SiteplanSelection::load(['masterSvg', 'kavlingPeta.customer.progres', 'kavlingPeta.listrikAir']);
 
-        return view('admin.siteplan.siteplan_baliknama.index', compact('lokasiKavling'));
+        return view('admin.siteplan.siteplan_baliknama.index', $selection);
     }
 
     public function show($id)
@@ -76,113 +75,17 @@ class SiteplanBalikNamaController extends Controller
 
     public function cetakJPG($id_lokasi)
     {
-        $svgContent = $this->generateSVG($id_lokasi);
-
-        $svgFilename = "siteplan_{$id_lokasi}.svg";
-
-        $svgPath = public_path("svg/{$svgFilename}");
-        if (! file_exists(dirname($svgPath))) {
-            mkdir(dirname($svgPath), 0755, true);
-        }
-        file_put_contents($svgPath, $svgContent);
-
-        $endpoint   = 'https://aplikasikavling.com/convert/proses.php';
-        $clientName = 'rhabayu_marketing';
-
-        $response = Http::attach(
-            'svg_file',
-            file_get_contents($svgPath),
-            $svgFilename
-        )->post($endpoint, [
-            'client' => $clientName,
-        ]);
-
-        if (! $response->successful()) {
-            abort(500, "Gagal upload ke server convert: " . $response->body());
-        }
-
-        $data = $response->json();
-        if (! isset($data['jpg_url'])) {
-            abort(500, "Gagal convert ke JPG: " . json_encode($data));
-        }
-
-        $jpgUrl = $data['jpg_url'];
-
-        $jpgContent  = Http::get($jpgUrl)->body();
-        $jpgFilename = basename(parse_url($jpgUrl, PHP_URL_PATH));
-
-        $jpgPath = public_path("hasil/{$jpgFilename}");
-        if (! file_exists(dirname($jpgPath))) {
-            mkdir(dirname($jpgPath), 0755, true);
-        }
-        file_put_contents($jpgPath, $jpgContent);
-
-        return response()->download($jpgPath);
+        return app(\App\Services\SiteplanPrint::class)->download(
+            $this->generateSVG($id_lokasi), (int) $id_lokasi, 'Balik Nama', 'jpg'
+        );
     }
 
     public function cetakPDF($id_lokasi)
     {
-        $lokasi         = LokasiKavling::with('perusahaan')->find($id_lokasi);
-        $namaPerusahaan = $lokasi?->perusahaan?->nama_perusahaan ?? '-';
-        $namaKavling    = $lokasi->nama_kavling ?? '-';
-        $periodeCetak   = now()->translatedFormat('d F Y');
-
-        $svgContent  = $this->generateSVG($id_lokasi);
-        $svgFilename = "siteplan_{$id_lokasi}.svg";
-        $svgPath     = public_path("svg/{$svgFilename}");
-        if (! file_exists(dirname($svgPath))) {
-            mkdir(dirname($svgPath), 0755, true);
-        }
-
-        file_put_contents($svgPath, $svgContent);
-
-        $endpoint   = 'https://aplikasikavling.com/convert/proses.php';
-        $clientName = 'rhabayu_marketing';
-        $response   = Http::attach('svg_file', file_get_contents($svgPath), $svgFilename)
-            ->post($endpoint, ['client' => $clientName]);
-        if (! $response->successful()) {
-            abort(500, "Gagal upload ke server convert: " . $response->body());
-        }
-
-        $data = $response->json();
-        if (! isset($data['jpg_url'])) {
-            abort(500, "Gagal convert ke JPG: " . json_encode($data));
-        }
-
-        $jpgUrl      = $data['jpg_url'];
-        $jpgContent  = Http::get($jpgUrl)->body();
-        $jpgFilename = basename(parse_url($jpgUrl, PHP_URL_PATH));
-        $jpgPath     = public_path("hasil/{$jpgFilename}");
-        if (! file_exists(dirname($jpgPath))) {
-            mkdir(dirname($jpgPath), 0755, true);
-        }
-
-        file_put_contents($jpgPath, $jpgContent);
-
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor($namaPerusahaan);
-        $pdf->SetTitle("Site Plan Penjualan - {$namaKavling}");
-        $pdf->SetMargins(10, 10, 10);
-        $pdf->AddPage();
-
-        $pdf->SetFont('helvetica', 'B', 14);
-        $pdf->Cell(0, 7, strtoupper($namaPerusahaan), 0, 1, 'C');
-        $pdf->SetFont('helvetica', '', 12);
-        $pdf->Cell(0, 6, 'SITE PLAN PENJUALAN ' . strtoupper($namaKavling), 0, 1, 'C');
-        $pdf->SetFont('helvetica', '', 10);
-        $pdf->Cell(0, 6, 'Periode Cetak : ' . $periodeCetak, 0, 1, 'C');
-
-        $pdf->SetDrawColor(0, 0, 0);
-        $pdf->SetLineWidth(0.7);
-        $pdf->Line(10, $pdf->GetY() + 2, 200, $pdf->GetY() + 2);
-        $pdf->SetLineWidth(0.3);
-        $pdf->Line(10, $pdf->GetY() + 3, 200, $pdf->GetY() + 3);
-
-        $pdf->Ln(10);
-
-        $pdf->Image($jpgPath, 25, $pdf->GetY(), 160, 0, 'JPG');
-
-        $pdf->Output("siteplan_{$namaKavling}.pdf", 'I');
+        return app(\App\Services\SiteplanPrint::class)->download(
+            $this->generateSVG($id_lokasi), (int) $id_lokasi, 'Balik Nama', 'pdf'
+        );
     }
+
+
 }

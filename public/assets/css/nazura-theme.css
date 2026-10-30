@@ -1,0 +1,98 @@
+/* Nazura Group: blue and red from the company logo. */
+:root {
+    --nazura-primary: #324697;
+    --nazura-dark: #1c2852;
+    --nazura-accent: #df1b23;
+    --nazura-soft: #edf0fa;
+    --nazura-focus: rgba(50, 70, 151, .22);
+    --primary: var(--nazura-primary);
+}
+
+.main-header.nazura-navbar {
+    background: linear-gradient(110deg, var(--nazura-dark), var(--nazura-primary));
+    border-bottom: 3px solid var(--nazura-accent);
+}
+.main-header.nazura-navbar .nav-link { color: #fff; }
+.main-sidebar { background-color: var(--nazura-dark); }
+.main-sidebar .brand-link {
+    background: #fff;
+    border-bottom: 3px solid var(--nazura-accent);
+    min-height: 94px;
+}
+.main-sidebar .brand-link .brand-image {
+    float: none;
+    width: 196px;
+    max-width: 90%;
+    height: auto;
+    max-height: 78px;
+    margin: 0;
+    object-fit: contain;
+    opacity: 1;
+}
+.sidebar-mini.sidebar-collapse .main-sidebar:not(:hover) .brand-image { width: 44px; }
+.sidebar-dark-primary .nav-sidebar .nav-link { color: #e1e6f5; border-radius: 7px; }
+.sidebar-dark-primary .nav-sidebar .nav-link:hover,
+.sidebar-dark-primary .nav-sidebar > .menu-open > .nav-link {
+    background-color: rgba(255, 255, 255, .1);
+    color: #fff;
+}
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-dark-primary .nav-treeview > .nav-item > .nav-link.active {
+    background-color: var(--nazura-primary);
+    color: #fff;
+    box-shadow: inset 3px 0 var(--nazura-accent);
+}
+body:not(.dark-mode) .content-wrapper { background-color: #f4f6fb; }
+body:not(.dark-mode) .main-footer { color: #667085; border-top-color: #e2e7f1; }
+.main-footer a { color: var(--nazura-primary); }
+.card { border-radius: 10px; box-shadow: 0 2px 10px rgba(28, 40, 82, .06); }
+.card-header:first-child { border-radius: 10px 10px 0 0; }
+.modal-content { border-radius: 12px; overflow: hidden; }
+.modal-header { border-radius: 11px 11px 0 0; }
+
+.btn-primary, .bg-primary, .bg-indigo,
+.card-primary:not(.card-outline) > .card-header,
+.page-item.active .page-link, .nav-pills .nav-link.active,
+.select2-container--bootstrap4 .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--nazura-primary) !important;
+    border-color: var(--nazura-primary) !important;
+    color: #fff !important;
+}
+.btn-primary:hover, .btn-primary:focus,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show > .btn-primary.dropdown-toggle {
+    background-color: var(--nazura-dark) !important;
+    border-color: var(--nazura-dark) !important;
+}
+.btn-outline-primary, .text-primary, .text-indigo { color: var(--nazura-primary) !important; }
+.btn-outline-primary, .card-primary.card-outline { border-color: var(--nazura-primary); }
+.btn-outline-primary:hover, .btn-outline-primary:focus,
+.btn-outline-primary:not(:disabled):not(.disabled):active {
+    background-color: var(--nazura-primary);
+    border-color: var(--nazura-primary);
+    color: #fff !important;
+}
+.form-control:focus, .custom-select:focus,
+.select2-container--bootstrap4.select2-container--focus .select2-selection,
+.btn-primary:focus, .btn-outline-primary:focus {
+    border-color: var(--nazura-primary);
+    box-shadow: 0 0 0 .2rem var(--nazura-focus);
+}
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--nazura-primary);
+    border-color: var(--nazura-primary);
+}
+.nav-tabs .nav-link.active { color: var(--nazura-primary); border-top: 3px solid var(--nazura-primary); }
+.page-link { color: var(--nazura-primary); }
+.btn { border-radius: 6px; }
+body.dark-mode .text-primary, body.dark-mode .text-indigo,
+body.dark-mode .btn-outline-primary, body.dark-mode .main-footer a { color: #b2c2ff !important; }
+body.dark-mode .btn-outline-primary:hover, body.dark-mode .btn-outline-primary:focus { color: #fff !important; }
+body.dark-mode .nav-tabs .nav-link.active { color: #b2c2ff; }
+body.dark-mode .page-item.active .page-link { background: var(--nazura-primary) !important; color: #fff !important; }
+body.dark-mode #modalForm .utility-section { background: #1f2937; border-color: #374151; }
+body.dark-mode #modalForm .attachment-tile { background: #111827; border-color: #4b5563; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .nav-sidebar .nav-link, .btn { transition: background-color .16s ease, box-shadow .16s ease; }
+}

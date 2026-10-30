@@ -29,7 +29,6 @@ use App\Http\Controllers\Master\NotarisController;
 use App\Http\Controllers\Master\PerusahaanController;
 use App\Http\Controllers\Master\RetensiController;
 use App\Http\Controllers\Master\UploadTemplateController;
-use App\Http\Controllers\PanduanAplikasiController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\Master\AdminPemberkasanController as MasterAdminPemberkasanController;
 use App\Http\Controllers\AdminPemberkasanController;
@@ -303,6 +302,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('admin/legal')->group(function () {
         Route::resource('bphtb-ssp', BphtbSSPController::class);
+        Route::get('listrik-air-unit', [ListrikAirController::class, 'availableUnits'])->name('listrik-air.units');
         Route::resource('listrik-air', ListrikAirController::class);
         Route::resource('pengajuan-berkas', BerkasPengajuanController::class);
     });
@@ -382,8 +382,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/hutang/sisa-bayar/{id}', [HutangController::class, 'getSisaBayar']);
     Route::get('/piutang/sisa-bayar/{id}', [PiutangController::class, 'getSisaBayar']);
 
-    Route::get('/panduan-aplikasi/menu', [PanduanAplikasiController::class, 'getMenuByRole']);
-    Route::resource('panduan-aplikasi', PanduanAplikasiController::class);
 
     Route::post('admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 });

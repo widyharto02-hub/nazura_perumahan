@@ -21,13 +21,13 @@
   <link rel="stylesheet" href="{{ asset('templates/plugins/toastr/toastr.min.css') }}">
   <style>
     :root{
-      --green:#0d3329;
-      --green-2:#174f3d;
-      --gold:#c99a45;
-      --gold-soft:#f5ead6;
-      --text:#102e27;
-      --muted:#6c7a73;
-      --line:#e3dfd6;
+      --green:#1c2852;
+      --green-2:#324697;
+      --gold:#df1b23;
+      --gold-soft:#edf0fa;
+      --text:#1c2852;
+      --muted:#667085;
+      --line:#dce2ef;
       --white:rgba(255,255,255,.92);
     }
     *{box-sizing:border-box}
@@ -40,7 +40,7 @@
     body::before{
       content:""; position:fixed; inset:0; pointer-events:none;
       background:
-        linear-gradient(90deg, rgba(5,20,17,.48) 0%, rgba(5,20,17,.10) 38%, rgba(5,20,17,.16) 100%),
+        linear-gradient(90deg, rgba(28,40,82,.48) 0%, rgba(28,40,82,.10) 38%, rgba(28,40,82,.16) 100%),
         radial-gradient(circle at 50% 48%, rgba(255,255,255,.06) 0 15%, rgba(0,0,0,.18) 65%);
     }
     .page{
@@ -52,16 +52,16 @@
       border-radius:26px;
       background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.88));
       border:1px solid rgba(255,255,255,.72);
-      box-shadow:0 30px 90px rgba(2,17,13,.38);
+      box-shadow:0 30px 90px rgba(28,40,82,.38);
       backdrop-filter:blur(18px);
       -webkit-backdrop-filter:blur(18px);
     }
     .logo{
       display:flex; justify-content:center; margin-bottom:18px;
     }
-    .logo svg{width:92px;height:62px;filter:drop-shadow(0 6px 16px rgba(201,154,69,.16))}
-    .logo img{max-height:62px;width:auto;filter:drop-shadow(0 6px 16px rgba(201,154,69,.16))}
-    .brand-small{text-align:center;letter-spacing:.22em;font-size:13px;font-weight:600;color:#35433e;margin:0 0 2px;text-transform:uppercase}
+    .logo svg{width:92px;height:62px;filter:drop-shadow(0 6px 16px rgba(50,70,151,.16))}
+    .logo img{max-height:62px;width:auto;filter:drop-shadow(0 6px 16px rgba(50,70,151,.16))}
+    .brand-small{text-align:center;letter-spacing:.22em;font-size:13px;font-weight:600;color:#344054;margin:0 0 2px;text-transform:uppercase}
     h1{
       font-family:'Playfair Display',serif;text-align:center;margin:0;color:var(--green);
       font-size:45px;line-height:.98;letter-spacing:.03em;
@@ -70,10 +70,10 @@
     .divider{display:flex;align-items:center;gap:12px;margin:0 auto 20px;max-width:250px;color:var(--gold)}
     .divider::before,.divider::after{content:"";height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);flex:1}.diamond{width:8px;height:8px;transform:rotate(45deg);border:1px solid var(--gold)}
     .login-title{text-align:center;color:var(--gold);font-size:20px;font-weight:800;margin-bottom:18px;letter-spacing:.04em}
-    label{display:block;font-size:13px;font-weight:700;margin:0 0 7px;color:#17392e}.field{margin-bottom:16px}.input-wrap{display:flex;align-items:center;height:54px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.78);overflow:hidden;transition:.2s}.input-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,154,69,.14);background:#fff}.icon-box{width:54px;height:100%;display:grid;place-items:center;background:var(--gold-soft);color:#a8782d;flex:0 0 54px}.input-wrap input{width:100%;height:100%;border:0;outline:0;background:transparent;padding:0 16px;font-size:15px;color:#1e352e}.input-wrap input::placeholder{color:#a9afa9}.eye{padding-right:15px;color:#4a554f;display:grid;place-items:center;cursor:pointer}
+    label{display:block;font-size:13px;font-weight:700;margin:0 0 7px;color:#1c2852}.field{margin-bottom:16px}.input-wrap{display:flex;align-items:center;height:54px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.78);overflow:hidden;transition:.2s}.input-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px rgba(50,70,151,.14);background:#fff}.icon-box{width:54px;height:100%;display:grid;place-items:center;background:var(--gold-soft);color:#324697;flex:0 0 54px}.input-wrap input{width:100%;height:100%;border:0;outline:0;background:transparent;padding:0 16px;font-size:15px;color:#1c2852}.input-wrap input::placeholder{color:#a9afa9}.eye{padding-right:15px;color:#4a554f;display:grid;place-items:center;cursor:pointer}
     .row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:4px 0 22px;font-size:13px;font-weight:700}.remember{display:flex;align-items:center;gap:8px;color:#65716b;cursor:pointer}.remember input{width:15px;height:15px;accent-color:var(--green);cursor:pointer}a{color:var(--green-2);text-decoration:none}a:hover{text-decoration:underline}
-    .btn{width:100%;height:58px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--green-2),#08291f);color:#fff;font-weight:800;font-size:16px;letter-spacing:.03em;cursor:pointer;box-shadow:0 14px 26px rgba(8,41,31,.28);transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px}.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}.btn:disabled{opacity:.75;cursor:default;transform:none;filter:none}
-    .footer{margin-top:27px;padding-top:20px;border-top:1px solid rgba(201,154,69,.25);display:flex;align-items:center;gap:13px;justify-content:center;text-align:left;color:#5c6862;font-size:12.5px;line-height:1.5}.footer b{display:block;color:#254439}.shield{width:34px;height:34px;color:var(--gold);flex:0 0 auto}
+    .btn{width:100%;height:58px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--green-2),#1c2852);color:#fff;font-weight:800;font-size:16px;letter-spacing:.03em;cursor:pointer;box-shadow:0 14px 26px rgba(28,40,82,.28);transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px}.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}.btn:disabled{opacity:.75;cursor:default;transform:none;filter:none}
+    .footer{margin-top:27px;padding-top:20px;border-top:1px solid rgba(50,70,151,.25);display:flex;align-items:center;gap:13px;justify-content:center;text-align:left;color:#5c6862;font-size:12.5px;line-height:1.5}.footer b{display:block;color:#1c2852}.shield{width:34px;height:34px;color:var(--gold);flex:0 0 auto}
     .input-wrap.is-invalid{border-color:#dc3545;box-shadow:0 0 0 4px rgba(220,53,69,.14);background:#fff}
     .invalid-feedback{display:block;font-size:12px;color:#dc3545;margin-top:4px;font-weight:500}
     .spinner-border{display:inline-block;width:20px;height:20px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spinner-border .75s linear infinite}.d-none{display:none!important}
@@ -89,9 +89,9 @@
           <img src="{{ asset('config_media/' . $logo->nama_file) }}" alt="{{ $konfigurasi->nama_perusahaan ?? 'Logo' }}">
         @else
           <svg viewBox="0 0 180 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M23 85L89 28l68 57" stroke="#c99a45" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M52 77v-34h25v34M102 77V48h25v29" stroke="#d8ac5b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M26 93c31-14 87-14 127 0" stroke="#c99a45" stroke-width="7" stroke-linecap="round"/>
+            <path d="M23 85L89 28l68 57" stroke="#df1b23" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M52 77v-34h25v34M102 77V48h25v29" stroke="#324697" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M26 93c31-14 87-14 127 0" stroke="#df1b23" stroke-width="7" stroke-linecap="round"/>
           </svg>
         @endif
       </div>

@@ -206,9 +206,9 @@ class ExportTransaksiService
 
     public function exportWawancara()
     {
+        app(\App\Http\Controllers\Transaksi\AkadController::class)->refreshDeadlineAkad();
         $data = Wawancara::with(['customer', 'customer.lokasi', 'customer.kavling', 'bankKPR'])
-            ->where('status', 1)
-            ->whereHas('customer', fn ($q) => $q->where('stt_arsip', 0))
+            ->prosesBankAktif()
             ->orderByDesc('id')
             ->get();
 

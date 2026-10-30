@@ -10,6 +10,8 @@ use App\Traits\LogAktivitasTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Yajra\DataTables\Facades\DataTables;
 
 class ListrikAirController extends Controller
@@ -68,192 +70,86 @@ class ListrikAirController extends Controller
         ]);
     }
 
+    private const ATTACHMENTS = [
+        'foto_listrik' => 'listrik_1', 'foto_listrik_2' => 'listrik_2',
+        'foto_air' => 'air_1', 'foto_air_2' => 'air_2',
+    ];
+
+    public function availableUnits(Request $request)
+    {
+        $request->validate(['id_lokasi' => 'required|integer', 'except_id' => 'nullable|integer']);
+        $used = ListrikAir::query()
+            ->when($request->filled('except_id'), fn ($query) => $query->where('id', '!=', $request->integer('except_id')))
+            ->select('id_kavling');
+        return response()->json(KavlingPeta::where('id_lokasi', $request->id_lokasi)
+            ->whereNotIn('id', $used)->orderBy('kode_kavling')->get(['id', 'kode_kavling']));
+    }
+
     public function store(Request $request)
     {
-        $request->validate([
-            'id_lokasi'      => 'required',
-            'id_kavling'     => 'required',
-            'norek_listrik'  => 'required',
-            'norek_air'      => 'required',
-            'foto_listrik'   => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_listrik_2' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_air'       => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_air_2'     => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
-        ], [
-            'id_lokasi.required'      => 'Lokasi perumahan wajib diisi.',
-            'id_kavling.required'     => 'Blok/Kavling wajib diisi.',
-            'norek_listrik.required'  => 'No. rekening listrik wajib diisi.',
-            'norek_air.required'      => 'No. rekening air wajib diisi.',
-            'foto_listrik.required'   => 'Foto meteran listrik wajib diunggah.',
-            'foto_listrik.file'       => 'Foto meteran listrik harus berupa file yang valid.',
-            'foto_listrik.mimes'      => 'Foto meteran listrik harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_listrik.max'        => 'Ukuran foto meteran listrik maksimal 2MB.',
-            'foto_listrik_2.required' => 'Foto meteran listrik 2 wajib diunggah.',
-            'foto_listrik_2.file'     => 'Foto meteran listrik 2 harus berupa file yang valid.',
-            'foto_listrik_2.mimes'    => 'Foto meteran listrik 2 harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_listrik_2.max'      => 'Ukuran foto meteran listrik 2 maksimal 2MB.',
-            'foto_air.required'       => 'Foto meteran air wajib diunggah.',
-            'foto_air.file'           => 'Foto meteran air harus berupa file yang valid.',
-            'foto_air.mimes'          => 'Foto meteran air harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_air.max'            => 'Ukuran foto meteran air maksimal 2MB.',
-            'foto_air_2.required'     => 'Foto meteran air 2 wajib diunggah.',
-            'foto_air_2.file'         => 'Foto meteran air 2 harus berupa file yang valid.',
-            'foto_air_2.mimes'        => 'Foto meteran air 2 harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_air_2.max'          => 'Ukuran foto meteran air 2 maksimal 2MB.',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            if ($request->hasFile('foto_listrik')) {
-                $ext             = $request->file('foto_listrik')->getClientOriginalExtension();
-                $fotolistrikName = Str::random(25) . '.' . $ext;
-                $request->file('foto_listrik')->move(public_path('assets/legal/listrik_air/listrik_1/'), $fotolistrikName);
-            }
-
-            if ($request->hasFile('foto_listrik_2')) {
-                $ext              = $request->file('foto_listrik_2')->getClientOriginalExtension();
-                $fotolistrik2Name = Str::random(25) . '.' . $ext;
-                $request->file('foto_listrik_2')->move(public_path('assets/legal/listrik_air/listrik_2/'), $fotolistrik2Name);
-            }
-
-            if ($request->hasFile('foto_air')) {
-                $ext         = $request->file('foto_air')->getClientOriginalExtension();
-                $fotoairName = Str::random(25) . '.' . $ext;
-                $request->file('foto_air')->move(public_path('assets/legal/listrik_air/air_1/'), $fotoairName);
-            }
-
-            if ($request->hasFile('foto_air_2')) {
-                $ext          = $request->file('foto_air_2')->getClientOriginalExtension();
-                $fotoair2Name = Str::random(25) . '.' . $ext;
-                $request->file('foto_air_2')->move(public_path('assets/legal/listrik_air/air_2/'), $fotoair2Name);
-            }
-
-            $db = [
-                'id_lokasi'      => $request->id_lokasi,
-                'id_kavling'     => $request->id_kavling,
-                'norek_listrik'  => $request->norek_listrik,
-                'norek_air'      => $request->norek_air,
-                'foto_listrik'   => $fotolistrikName,
-                'foto_listrik_2' => $fotolistrik2Name,
-                'foto_air'       => $fotoairName,
-                'foto_air_2'     => $fotoair2Name,
-            ];
-
-            $la = ListrikAir::create($db);
-            $this->logCreate('Listrik Air', $la->id);
-
-            DB::commit();
-
-            return response()->json(['status' => 'success']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'error'  => $e->getMessage(),
-            ], 500);
-        }
+        return $this->saveUtilities($request, new ListrikAir());
     }
 
     public function update(Request $request, $id)
     {
-        $data = ListrikAir::findOrFail($id);
+        return $this->saveUtilities($request, ListrikAir::findOrFail($id));
+    }
 
-        $request->validate([
-            'id_lokasi'      => 'required',
-            'id_kavling'     => 'required',
-            'norek_listrik'  => 'required',
-            'norek_air'      => 'required',
-            'foto_listrik'   => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_listrik_2' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_air'       => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-            'foto_air_2'     => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-        ], [
-            'id_lokasi.required'     => 'Lokasi perumahan wajib diisi.',
-            'id_kavling.required'    => 'Blok/Kavling wajib diisi.',
-            'norek_listrik.required' => 'No. rekening listrik wajib diisi.',
-            'norek_air.required'     => 'No. rekening air wajib diisi.',
-            'foto_listrik.file'      => 'Foto meteran listrik harus berupa file yang valid.',
-            'foto_listrik.mimes'     => 'Foto meteran listrik harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_listrik.max'       => 'Ukuran foto meteran listrik maksimal 2MB.',
-            'foto_listrik_2.file'    => 'Foto meteran listrik 2 harus berupa file yang valid.',
-            'foto_listrik_2.mimes'   => 'Foto meteran listrik 2 harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_listrik_2.max'     => 'Ukuran foto meteran listrik 2 maksimal 2MB.',
-            'foto_air.file'          => 'Foto meteran air harus berupa file yang valid.',
-            'foto_air.mimes'         => 'Foto meteran air harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_air.max'           => 'Ukuran foto meteran air maksimal 2MB.',
-            'foto_air_2.file'        => 'Foto meteran air 2 harus berupa file yang valid.',
-            'foto_air_2.mimes'       => 'Foto meteran air 2 harus berformat jpeg, png, jpg, atau pdf.',
-            'foto_air_2.max'         => 'Ukuran foto meteran air 2 maksimal 2MB.',
+    private function saveUtilities(Request $request, ListrikAir $data)
+    {
+        $unique = Rule::unique('listrik_air', 'id_kavling');
+        if ($data->exists) $unique->ignore($data->id);
+        $rules = [
+            'id_lokasi' => ['required', 'integer', Rule::exists('lokasi_kavling', 'id')],
+            'id_kavling' => ['required', 'integer', $unique,
+                Rule::exists('kavling_peta', 'id')->where('id_lokasi', $request->id_lokasi)],
+            'norek_listrik' => 'nullable|required_without:norek_air|string|max:35',
+            'norek_air' => 'nullable|required_without:norek_listrik|string|max:35',
+        ];
+        foreach (self::ATTACHMENTS as $field => $folder) {
+            $rules[$field] = 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048';
+            $rules['remove_'.$field] = 'sometimes|boolean';
+        }
+        $validated = $request->validate($rules, [
+            'id_kavling.unique' => 'Unit ini sudah memiliki data listrik/air. Gunakan menu Edit untuk melengkapinya.',
+            'id_kavling.exists' => 'Unit tidak sesuai dengan lokasi yang dipilih.',
+            'norek_listrik.required_without' => 'Isi minimal salah satu nomor rekening listrik atau air.',
+            'norek_air.required_without' => 'Isi minimal salah satu nomor rekening listrik atau air.',
         ]);
 
+        $newFiles = [];
+        $oldFiles = [];
         DB::beginTransaction();
         try {
-            if ($request->hasFile('foto_listrik')) {
-                if (! empty($data->foto_listrik) && file_exists(public_path('assets/legal/listrik_air/listrik_1/' . $data->foto_listrik))) {
-                    unlink(public_path('assets/legal/listrik_air/listrik_1/' . $data->foto_listrik));
+            $creating = !$data->exists;
+            $data->fill(collect($validated)->only(['id_lokasi', 'id_kavling', 'norek_listrik', 'norek_air'])->all());
+            foreach (self::ATTACHMENTS as $field => $folder) {
+                if (!$request->hasFile($field) && !$request->boolean('remove_'.$field)) continue;
+                if ($data->$field) $oldFiles[] = public_path('assets/legal/listrik_air/'.$folder.'/'.basename($data->$field));
+                $data->$field = null;
+                if ($request->hasFile($field)) {
+                    $file = $request->file($field);
+                    $name = Str::random(25).'.'.$file->extension();
+                    $path = public_path('assets/legal/listrik_air/'.$folder);
+                    $file->move($path, $name);
+                    $newFiles[] = $path.'/'.$name;
+                    $data->$field = $name;
                 }
-
-                $foto            = $request->file('foto_listrik');
-                $ext             = $foto->getClientOriginalExtension();
-                $fotolistrikName = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/legal/listrik_air/listrik_1/'), $fotolistrikName);
             }
-
-            if ($request->hasFile('foto_listrik_2')) {
-                if (! empty($data->foto_listrik_2) && file_exists(public_path('assets/legal/listrik_air/listrik_2/' . $data->foto_listrik_2))) {
-                    unlink(public_path('assets/legal/listrik_air/listrik_2/' . $data->foto_listrik_2));
-                }
-
-                $foto             = $request->file('foto_listrik_2');
-                $ext              = $foto->getClientOriginalExtension();
-                $fotolistrik2Name = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/legal/listrik_air/listrik_2/'), $fotolistrik2Name);
-            }
-
-            if ($request->hasFile('foto_air')) {
-                if (! empty($data->foto_air) && file_exists(public_path('assets/legal/listrik_air/air_1/' . $data->foto_air))) {
-                    unlink(public_path('assets/legal/listrik_air/air_1/' . $data->foto_air));
-                }
-
-                $foto        = $request->file('foto_air');
-                $ext         = $foto->getClientOriginalExtension();
-                $fotoairName = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/legal/listrik_air/air_1/'), $fotoairName);
-            }
-
-            if ($request->hasFile('foto_air_2')) {
-                if (! empty($data->foto_air_2) && file_exists(public_path('assets/legal/listrik_air/air_2/' . $data->foto_air_2))) {
-                    unlink(public_path('assets/legal/listrik_air/air_2/' . $data->foto_air_2));
-                }
-
-                $foto         = $request->file('foto_air_2');
-                $ext          = $foto->getClientOriginalExtension();
-                $fotoair2Name = Str::random(25) . '.' . $ext;
-                $foto->move(public_path('assets/legal/listrik_air/air_2/'), $fotoair2Name);
-            }
-
-            $data->update([
-                'id_lokasi'      => $request->id_lokasi,
-                'id_kavling'     => $request->id_kavling,
-                'norek_listrik'  => $request->norek_listrik,
-                'norek_air'      => $request->norek_air,
-                'foto_listrik'   => isset($fotolistrikName) ? $fotolistrikName : $data->foto_listrik,
-                'foto_listrik_2' => isset($fotolistrik2Name) ? $fotolistrik2Name : $data->foto_listrik_2,
-                'foto_air'       => isset($fotoairName) ? $fotoairName : $data->foto_air,
-                'foto_air_2'     => isset($fotoair2Name) ? $fotoair2Name : $data->foto_air_2,
-            ]);
-            $this->logEdit('Listrik Air', $data->id);
-
+            $data->save();
+            $creating ? $this->logCreate('Listrik Air', $data->id) : $this->logEdit('Listrik Air', $data->id);
             DB::commit();
-
-            return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'status' => 'error',
-                'error'  => $e->getMessage(),
-            ], 500);
+            foreach ($newFiles as $path) if (is_file($path)) @unlink($path);
+            if ($e instanceof UniqueConstraintViolationException) {
+                return response()->json(['errors' => ['id_kavling' => ['Unit ini sudah memiliki data listrik/air. Gunakan menu Edit.']]], 422);
+            }
+            report($e);
+            return response()->json(['message' => 'Data gagal disimpan. Silakan coba lagi.'], 500);
         }
+        foreach ($oldFiles as $path) if (is_file($path)) @unlink($path);
+        return response()->json(['status' => 'success']);
     }
 
     public function destroy($id)
