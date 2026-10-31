@@ -26,6 +26,17 @@
                                 </div>
                             </div>
                             <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="filter_lokasi">Lokasi Perumahan</label>
+                                        <select id="filter_lokasi" class="form-control">
+                                            <option value="">Semua Lokasi Perumahan</option>
+                                            @foreach ($lokasi as $l)
+                                                <option value="{{ $l->id }}">{{ $l->nama_kavling }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
                                 <table id="table" class="table table-bordered table-striped data-table">
                                     <thead>
                                         <tr>
@@ -180,12 +191,21 @@
             var permissions = @json($permissions);
             var showActionColumn = (permissions['edit'] == 1 || permissions['hapus'] == 1);
 
+            $('#filter_lokasi').on('change', function() {
+                table.ajax.reload();
+            });
+
             var table = $('.data-table').DataTable({
                 processing: false,
                 serverSide: false,
                 ordering: false,
                 responsive: true,
-                ajax: "{{ route('bphtb-ssp.index') }}",
+                ajax: {
+                    url: "{{ route('bphtb-ssp.index') }}",
+                    data: function(data) {
+                        data.id_lokasi = $('#filter_lokasi').val();
+                    }
+                },
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',

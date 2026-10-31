@@ -2,6 +2,14 @@
 
 Catatan ini diperbarui sepanjang revisi sesi ini untuk panduan update hosting.
 
+## Paket SQL hosting
+
+- File gabungan: `database/hosting-update-2026-10-30.sql`.
+- Mencakup seluruh 4 migration sesi ini dan mencatatnya ke tabel `migrations` agar tidak dijalankan ulang oleh Artisan.
+- Diuji dua kali pada salinan tabel terisolasi di database lokal, termasuk kondisi SQL dijalankan ulang. Seluruh tabel pengujian dibersihkan setelah selesai.
+- Backup hosting terlebih dahulu. Jalankan pemeriksaan duplikasi di awal file secara terpisah; lanjut import hanya jika hasilnya kosong. Hentikan jika terdapat error.
+- Upload kode aplikasi terbaru juga, karena perubahan tampilan dan perilaku aplikasi tidak tercakup SQL.
+
 ## 1. Hapus Panduan Aplikasi
 
 - Migration: `database/migrations/2026_10_30_000000_remove_panduan_aplikasi_tables.php`.

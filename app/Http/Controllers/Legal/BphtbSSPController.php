@@ -19,7 +19,14 @@ class BphtbSSPController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $opd = BphtbSsp::orderBy('id', 'desc');
+            $opd = BphtbSsp::query()
+                ->when($request->filled('id_lokasi'), function ($query) use ($request) {
+                    $query->where('id_lokasi', $request->input('id_lokasi'));
+                })
+                ->orderBy(KavlingPeta::select('kode_kavling')
+                    ->whereColumn('kavling_peta.id', 'bphtb_ssp.id_kavling')
+                    ->limit(1))
+                ->orderBy('id');
 
             return DataTables::of($opd)
                 ->addIndexColumn()

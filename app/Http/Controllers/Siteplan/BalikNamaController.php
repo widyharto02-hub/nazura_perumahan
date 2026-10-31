@@ -21,7 +21,14 @@ class BalikNamaController extends Controller
         $permissions = HakAksesController::getUserPermissions();
 
         if ($request->ajax()) {
-            $opd = BalikNama::orderBy('id', 'desc');
+            $opd = BalikNama::query()
+                ->when($request->filled('id_lokasi'), function ($query) use ($request) {
+                    $query->where('id_lokasi', $request->input('id_lokasi'));
+                })
+                ->orderBy(KavlingPeta::select('kode_kavling')
+                    ->whereColumn('kavling_peta.id', 'balik_nama.id_kavling')
+                    ->limit(1))
+                ->orderBy('id');
 
             return DataTables::of($opd)
                 ->addIndexColumn()
