@@ -10,6 +10,7 @@ use App\Models\Pemasukan;
 use App\Models\Pengeluaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardKeuanganController extends Controller
 {
@@ -53,19 +54,22 @@ class DashboardKeuanganController extends Controller
         $tanggalSelesai = $request->tanggal_selesai ?: null;
 
         if ($request->tipe === 'pemasukan') {
-            // Lokasi pemasukan mengikuti customer; filter Office hanya mengambil pengeluaran
+            // Lokasi pemasukan hutang mengikuti hutang; pemasukan lainnya mengikuti customer.
             if ((string) $idLokasi === '0') {
                 return response()->json(['data' => []]);
             }
 
+            $lokasiPemasukan = $this->lokasiPemasukanExpression();
+
             $query = Pemasukan::query()->from('pemasukan as transaksi')
                 ->leftJoin('kategori_transaksi as kategori', 'kategori.id', '=', 'transaksi.id_kategori_transaksi')
                 ->leftJoin('customer as pelanggan', 'pelanggan.id', '=', 'transaksi.id_customer')
+                ->leftJoin('hutang as hutang', 'hutang.id', '=', 'transaksi.id_hutang')
                 ->when($tanggalMulai && $tanggalSelesai, fn ($query) => $query->whereBetween('transaksi.tanggal', [$tanggalMulai, $tanggalSelesai]))
                 ->when($tanggalMulai && ! $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '>=', $tanggalMulai))
                 ->when(! $tanggalMulai && $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '<=', $tanggalSelesai))
-                ->when((string) $idLokasi === '-1', fn ($query) => $query->whereNull('pelanggan.id_lokasi'))
-                ->when($request->filled('id_lokasi') && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->where('pelanggan.id_lokasi', $idLokasi));
+                ->when((string) $idLokasi === '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) IS NULL"))
+                ->when($request->filled('id_lokasi') && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [$idLokasi]));
         } else {
             // Lokasi pengeluaran langsung dari kolom id_lokasi transaksi
             $query = Pengeluaran::query()->from('pengeluaran as transaksi')
@@ -121,18 +125,25 @@ class DashboardKeuanganController extends Controller
             return collect();
         }
 
-        // Lokasi pemasukan mengikuti customer: pemasukan -> customer -> lokasi
+        // Gunakan sumber lokasi yang sama untuk ringkasan, filter, dan detail.
+        $lokasiPemasukan = $this->lokasiPemasukanExpression();
         return Pemasukan::query()->from('pemasukan as transaksi')
             ->leftJoin('customer as pelanggan', 'pelanggan.id', '=', 'transaksi.id_customer')
-            ->leftJoin('lokasi_kavling as lokasi', 'lokasi.id', '=', 'pelanggan.id_lokasi')
+            ->leftJoin('hutang as hutang', 'hutang.id', '=', 'transaksi.id_hutang')
+            ->leftJoin('lokasi_kavling as lokasi', 'lokasi.id', '=', DB::raw($lokasiPemasukan))
             ->when($tanggalMulai && $tanggalSelesai, fn ($query) => $query->whereBetween('transaksi.tanggal', [$tanggalMulai, $tanggalSelesai]))
             ->when($tanggalMulai && ! $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '>=', $tanggalMulai))
             ->when(! $tanggalMulai && $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '<=', $tanggalSelesai))
-            ->when((string) $idLokasi === '-1', fn ($query) => $query->whereNull('pelanggan.id_lokasi'))
-            ->when($idLokasi !== null && $idLokasi !== '' && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->where('pelanggan.id_lokasi', $idLokasi))
-            ->selectRaw("CASE WHEN pelanggan.id_lokasi IS NULL THEN -1 ELSE pelanggan.id_lokasi END as id_lokasi, CASE WHEN lokasi.id IS NULL THEN 'Tanpa Proyek' ELSE lokasi.nama_kavling END as nama_proyek, SUM(transaksi.nominal) as total")
-            ->groupByRaw('pelanggan.id_lokasi, lokasi.id, lokasi.nama_kavling')
+            ->when((string) $idLokasi === '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) IS NULL"))
+            ->when($idLokasi !== null && $idLokasi !== '' && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [$idLokasi]))
+            ->selectRaw("COALESCE(($lokasiPemasukan), -1) as id_lokasi, CASE WHEN lokasi.id IS NULL THEN 'Tanpa Proyek' ELSE lokasi.nama_kavling END as nama_proyek, SUM(transaksi.nominal) as total")
+            ->groupByRaw("COALESCE(($lokasiPemasukan), -1), lokasi.id, lokasi.nama_kavling")
             ->get();
+    }
+
+    private function lokasiPemasukanExpression(): string
+    {
+        return 'CASE WHEN hutang.id IS NOT NULL THEN hutang.id_lokasi ELSE pelanggan.id_lokasi END';
     }
 
     private function summaryPengeluaran($tanggalMulai, $tanggalSelesai, $idLokasi)
