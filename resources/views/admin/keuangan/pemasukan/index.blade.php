@@ -97,6 +97,18 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="id_lokasi" class="col-sm-3 col-form-label">Nama Perumahan</label>
+                            <div class="col-sm-6">
+                                <select class="form-select select-lokasi" name="id_lokasi" id="id_lokasi">
+                                    <option value=""></option>
+                                    <option value="0">Office Nazura Group</option>
+                                    @foreach ($lokasiList as $lokasi)
+                                        <option value="{{ $lokasi->id }}">{{ $lokasi->nama_kavling }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="keterangan" class="col-sm-3 col-form-label">Keterangan</label>
                             <div class="col-sm-9">
                                 <textarea name="keterangan" id="keterangan" class="form-control" rows="2"></textarea>
@@ -205,6 +217,18 @@
                         </div>
                     </div>
                     <div class="form-group row">
+                        <label for="id_lokasi_detail" class="col-sm-3 col-form-label">Nama Perumahan</label>
+                        <div class="col-sm-6">
+                            <select class="form-select select-lokasi" id="id_lokasi_detail" disabled>
+                                <option value=""></option>
+                                <option value="0">Office Nazura Group</option>
+                                @foreach ($lokasiList as $lokasi)
+                                    <option value="{{ $lokasi->id }}">{{ $lokasi->nama_kavling }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
                         <label for="keterangan_detail" class="col-sm-3 col-form-label">Keterangan</label>
                         <div class="col-sm-9">
                             <textarea name="keterangan" id="keterangan_detail" class="form-control" rows="2" readonly></textarea>
@@ -251,6 +275,10 @@
         previewFile('lampiran_detail', 'previewLampiranDetail');
 
         $(document).ready(function() {
+            $('.select-lokasi').select2({
+                theme: "bootstrap4",
+                placeholder: "Pilih Perumahan",
+            });
             $('.select-bank').select2({
                 theme: "bootstrap4",
                 minimumResultsForSearch: Infinity,
@@ -379,6 +407,7 @@
                     $('#primary_id').val(response.data.id);
                     $('#tanggal').val(response.data.tanggal);
                     $('#keterangan').val(response.data.keterangan);
+                    $('#id_lokasi').val(response.data.id_lokasi).trigger('change');
 
                     let nominal = parseFloat(response.data.nominal);
                     if (!isNaN(nominal)) {
@@ -415,6 +444,7 @@
                     $('#modalDetailLabel').text('Detail Pemasukan');
                     $('#tanggal_detail').val(response.data.tanggal);
                     $('#keterangan_detail').val(response.data.keterangan);
+                    $('#id_lokasi_detail').val(response.data.id_lokasi).trigger('change');
 
                     let nominal = parseFloat(response.data.nominal);
                     if (!isNaN(nominal)) {
@@ -441,6 +471,7 @@
 
         $('#modalForm').on('hidden.bs.modal', function() {
             $('#formData')[0].reset();
+            $('#id_lokasi').val('').trigger('change');
             $('#primary_id').val('');
             $('#id_kategori_transaksi').val('').trigger('change');
             $('#id_bank').val('').trigger('change');
@@ -460,6 +491,7 @@
         });
 
         $('#modalDetail').on('hidden.bs.modal', function() {
+            $('#id_lokasi_detail').val('').trigger('change');
             $('#id_kategori_transaksi_detail').val('').trigger('change');
             $('#id_bank_detail').val('').trigger('change');
 

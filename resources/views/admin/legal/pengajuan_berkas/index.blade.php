@@ -24,14 +24,9 @@
                                         <tr>
                                             <th width="4%">No</th>
                                             <th width="25%">Nama Customer</th>
-                                            <th width="7%">IPH</th>
-                                            <th width="7%">SHGB</th>
-                                            <th width="7%">SSP</th>
-                                            <th width="7%">BPHTB</th>
-                                            <th width="9%">SIKUMBANG</th>
-                                            <th width="10%">DAFTAR SIKASEP</th>
-                                            <th width="10%">FOTO SIKASEP</th>
-                                            <th width="8%">TRILOGI</th>
+                                            @foreach ($jenisBerkas as $jenis)
+                                                <th title="{{ $jenis->nama }}">{{ $jenis->singkatan }}</th>
+                                            @endforeach
                                             <th class="text-center" width="10%">Action</th>
                                         </tr>
                                     </thead>
@@ -74,94 +69,17 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
-                            <label for="IPH" class="col-sm-4 col-form-label">IPH</label>
-                            <div class="col-sm-5">
-                                <select name="IPH" id="IPH" class="form-select select-iph">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
+                        @foreach ($jenisBerkas as $jenis)
+                            <div class="form-group row">
+                                <label for="berkas_{{ $jenis->id }}" class="col-sm-4 col-form-label">{{ $jenis->nama }}</label>
+                                <div class="col-sm-8">
+                                    <select name="berkas[{{ $jenis->id }}]" id="berkas_{{ $jenis->id }}" class="form-select select-status-berkas" required>
+                                        <option value="0">Belum Ada</option>
+                                        <option value="1">Ada</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="SHGB" class="col-sm-4 col-form-label">SHGB</label>
-                            <div class="col-sm-5">
-                                <select name="SHGB" id="SHGB" class="form-select select-shgb">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="SSP" class="col-sm-4 col-form-label">SSP</label>
-                            <div class="col-sm-5">
-                                <select name="SSP" id="SSP" class="form-select select-ssp">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="BPHTB" class="col-sm-4 col-form-label">BPHTB</label>
-                            <div class="col-sm-5">
-                                <select name="BPHTB" id="BPHTB" class="form-select select-bphtb">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="SIKUMBANG" class="col-sm-4 col-form-label">SIKUMBANG</label>
-                            <div class="col-sm-5">
-                                <select name="SIKUMBANG" id="SIKUMBANG" class="form-select select-sikumbang">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="DAFTAR_SIKASEP" class="col-sm-4 col-form-label">DAFTAR SIKASEP</label>
-                            <div class="col-sm-5">
-                                <select name="DAFTAR_SIKASEP" id="DAFTAR_SIKASEP"
-                                    class="form-select select-daftar-sikasep">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="FOTO_SIKASEP" class="col-sm-4 col-form-label">FOTO SIKASEP</label>
-                            <div class="col-sm-5">
-                                <select name="FOTO_SIKASEP" id="FOTO_SIKASEP" class="form-select select-foto-sikasep">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="TRILOGI" class="col-sm-4 col-form-label">TRILOGI</label>
-                            <div class="col-sm-5">
-                                <select name="TRILOGI" id="TRILOGI" class="form-select select-trilogi">
-                                    <option value=""></option>
-                                    <option value="0">Belum Ada</option>
-                                    <option value="1">Ada</option>
-                                </select>
-                            </div>
-                        </div>
+                        @endforeach
 
                         <div class="form-group row">
                             <label class="col-sm-4 col-form-label">Percakapan WA</label>
@@ -202,44 +120,8 @@
         previewFile('percakapan_wa', 'previewPercakapanWa');
 
         $(document).ready(function() {
-            $('.select-iph').select2({
+            $('.select-status-berkas').select2({
                 theme: "bootstrap4",
-                placeholder: "Pilih Status IPH",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-shgb').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status SHGB",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-ssp').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status SSP",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-bphtb').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status BPHTB",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-sikumbang').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status SIKUMBANG",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-daftar-sikasep').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status DAFTAR SIKASEP",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-foto-sikasep').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status FOTO SIKASEP",
-                minimumResultsForSearch: Infinity
-            });
-            $('.select-trilogi').select2({
-                theme: "bootstrap4",
-                placeholder: "Pilih Status TRILOGI",
                 minimumResultsForSearch: Infinity
             });
         });
@@ -267,62 +149,14 @@
                         orderable: false,
                         searchable: true
                     },
+                    @foreach ($jenisBerkas as $jenis)
                     {
-                        data: 'IPH',
-                        name: 'IPH',
+                        data: 'berkas_{{ $jenis->id }}',
                         orderable: false,
                         searchable: false,
                         className: 'text-center'
                     },
-                    {
-                        data: 'SHGB',
-                        name: 'SHGB',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'SSP',
-                        name: 'SSP',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'BPHTB',
-                        name: 'BPHTB',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'SIKUMBANG',
-                        name: 'SIKUMBANG',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'DAFTAR_SIKASEP',
-                        name: 'DAFTAR_SIKASEP',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'FOTO_SIKASEP',
-                        name: 'FOTO_SIKASEP',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'TRILOGI',
-                        name: 'TRILOGI',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    },
+                    @endforeach
                     {
                         data: 'action',
                         name: 'action',
@@ -351,14 +185,9 @@
 
                     $('#primary_id').val(response.data.id);
                     $('#nama_lengkap').val(response.data.customer.nama_lengkap);
-                    $('#IPH').val(response.data.IPH).trigger('change');
-                    $('#SHGB').val(response.data.SHGB).trigger('change');
-                    $('#SSP').val(response.data.SSP).trigger('change');
-                    $('#BPHTB').val(response.data.BPHTB).trigger('change');
-                    $('#SIKUMBANG').val(response.data.SIKUMBANG).trigger('change');
-                    $('#DAFTAR_SIKASEP').val(response.data.DAFTAR_SIKASEP).trigger('change');
-                    $('#FOTO_SIKASEP').val(response.data.FOTO_SIKASEP).trigger('change');
-                    $('#TRILOGI').val(response.data.TRILOGI).trigger('change');
+                    @foreach ($jenisBerkas as $jenis)
+                    $('#berkas_{{ $jenis->id }}').val(response.data.status_berkas['{{ $jenis->id }}'] ?? 0).trigger('change');
+                    @endforeach
                     $('#catatan_kekurangan').val(response.data.catatan_kekurangan);
                     setPreview(response.data.percakapan_wa, 'assets/legal/pengajuan_berkas/percakapan_wa',
                         'previewPercakapanWa');
@@ -437,7 +266,7 @@
 
                         let errors = xhr.responseJSON.errors;
                         $.each(errors, function(key, val) {
-                            let input = $('#' + key);
+                            let input = key.startsWith('berkas.') ? $('#berkas_' + key.split('.')[1]) : $('#' + key);
                             input.addClass('is-invalid');
                             input.parent().find('.invalid-feedback').remove();
                             input.parent().append(

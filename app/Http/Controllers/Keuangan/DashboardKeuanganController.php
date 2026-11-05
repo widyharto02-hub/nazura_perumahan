@@ -54,11 +54,6 @@ class DashboardKeuanganController extends Controller
         $tanggalSelesai = $request->tanggal_selesai ?: null;
 
         if ($request->tipe === 'pemasukan') {
-            // Lokasi pemasukan hutang mengikuti hutang; pemasukan lainnya mengikuti customer.
-            if ((string) $idLokasi === '0') {
-                return response()->json(['data' => []]);
-            }
-
             $lokasiPemasukan = $this->lokasiPemasukanExpression();
 
             $query = Pemasukan::query()->from('pemasukan as transaksi')
@@ -69,7 +64,7 @@ class DashboardKeuanganController extends Controller
                 ->when($tanggalMulai && ! $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '>=', $tanggalMulai))
                 ->when(! $tanggalMulai && $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '<=', $tanggalSelesai))
                 ->when((string) $idLokasi === '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) IS NULL"))
-                ->when($request->filled('id_lokasi') && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [$idLokasi]));
+                ->when($request->filled('id_lokasi') && (string) $idLokasi !== '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [(int) $idLokasi]));
         } else {
             // Lokasi pengeluaran langsung dari kolom id_lokasi transaksi
             $query = Pengeluaran::query()->from('pengeluaran as transaksi')
@@ -120,13 +115,9 @@ class DashboardKeuanganController extends Controller
 
     private function summaryPemasukan($tanggalMulai, $tanggalSelesai, $idLokasi)
     {
-        // Filter Office Nazura Group hanya mengambil pengeluaran, pemasukan diabaikan
-        if ((string) $idLokasi === '0') {
-            return collect();
-        }
-
         // Gunakan sumber lokasi yang sama untuk ringkasan, filter, dan detail.
         $lokasiPemasukan = $this->lokasiPemasukanExpression();
+        $namaProyek = "CASE WHEN ($lokasiPemasukan) = 0 THEN 'Office Nazura Group' WHEN lokasi.id IS NULL THEN 'Tanpa Proyek' ELSE lokasi.nama_kavling END";
         return Pemasukan::query()->from('pemasukan as transaksi')
             ->leftJoin('customer as pelanggan', 'pelanggan.id', '=', 'transaksi.id_customer')
             ->leftJoin('hutang as hutang', 'hutang.id', '=', 'transaksi.id_hutang')
@@ -135,15 +126,17 @@ class DashboardKeuanganController extends Controller
             ->when($tanggalMulai && ! $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '>=', $tanggalMulai))
             ->when(! $tanggalMulai && $tanggalSelesai, fn ($query) => $query->where('transaksi.tanggal', '<=', $tanggalSelesai))
             ->when((string) $idLokasi === '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) IS NULL"))
-            ->when($idLokasi !== null && $idLokasi !== '' && ! in_array((string) $idLokasi, ['0', '-1'], true), fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [$idLokasi]))
-            ->selectRaw("COALESCE(($lokasiPemasukan), -1) as id_lokasi, CASE WHEN lokasi.id IS NULL THEN 'Tanpa Proyek' ELSE lokasi.nama_kavling END as nama_proyek, SUM(transaksi.nominal) as total")
-            ->groupByRaw("COALESCE(($lokasiPemasukan), -1), lokasi.id, lokasi.nama_kavling")
+            ->when($idLokasi !== null && $idLokasi !== '' && (string) $idLokasi !== '-1', fn ($query) => $query->whereRaw("($lokasiPemasukan) = ?", [(int) $idLokasi]))
+            ->selectRaw("COALESCE(($lokasiPemasukan), -1) as id_lokasi, $namaProyek as nama_proyek, SUM(transaksi.nominal) as total")
+            ->groupByRaw("COALESCE(($lokasiPemasukan), -1), $namaProyek")
             ->get();
     }
 
     private function lokasiPemasukanExpression(): string
     {
-        return 'CASE WHEN hutang.id IS NOT NULL THEN hutang.id_lokasi ELSE pelanggan.id_lokasi END';
+        // Pembayaran customer/hutang memiliki id_lokasi bawaan 0, sehingga harus
+        // mengikuti lokasi sumbernya. Lokasi transaksi digunakan untuk pemasukan manual.
+        return 'CASE WHEN hutang.id IS NOT NULL THEN hutang.id_lokasi WHEN pelanggan.id IS NOT NULL THEN pelanggan.id_lokasi ELSE transaksi.id_lokasi END';
     }
 
     private function summaryPengeluaran($tanggalMulai, $tanggalSelesai, $idLokasi)

@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Legal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
-use App\Models\Customer;
+use App\Models\JenisBerkasPengajuan;
 use App\Models\PersyaratanLegal;
 use App\Traits\LogAktivitasTrait;
 use Illuminate\Http\Request;
@@ -17,56 +17,16 @@ class BerkasPengajuanController extends Controller
     public function index(Request $request)
     {
         $permissions = HakAksesController::getUserPermissions();
+        $jenisBerkas = JenisBerkasPengajuan::aktif()->get();
 
         if ($request->ajax()) {
             $data = PersyaratanLegal::with('customer')->orderBy('id', 'desc');
 
-            return DataTables::of($data)
+            $table = DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('nama_customer', function ($row) {
                     return $row->customer?->nama_lengkap ?? '';
                 })
-                ->addColumn('IPH', function ($row) {
-                    return $row->IPH == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('SHGB', function ($row) {
-                    return $row->SHGB == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('SSP', function ($row) {
-                    return $row->SSP == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('BPHTB', function ($row) {
-                    return $row->BPHTB == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('SIKUMBANG', function ($row) {
-                    return $row->SIKUMBANG == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('DAFTAR_SIKASEP', function ($row) {
-                    return $row->DAFTAR_SIKASEP == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('FOTO_SIKASEP', function ($row) {
-                    return $row->FOTO_SIKASEP == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-                ->addColumn('TRILOGI', function ($row) {
-                    return $row->TRILOGI == 1
-                        ? '<i class="fas fa-check-circle text-success"></i>'
-                        : '<i class="fas fa-times-circle text-danger"></i>';
-                })
-
                 ->addColumn('action', function ($row) use ($permissions): string {
                     $editUrl = route('pengajuan-berkas.edit', $row->id);
                     $hasCust = $row->customer ? true : false;
@@ -79,17 +39,26 @@ class BerkasPengajuanController extends Controller
 
                     $btn .= '</div>';
                     return $btn;
-                })
-                ->rawColumns(['nama_customer', 'IPH', 'SHGB', 'SSP', 'BPHTB', 'SIKUMBANG', 'DAFTAR_SIKASEP', 'FOTO_SIKASEP', 'TRILOGI', 'action'])
-                ->make(true);
+                });
+            $rawColumns = ['action'];
+            foreach ($jenisBerkas as $jenis) {
+                $key = 'berkas_' . $jenis->id;
+                $rawColumns[] = $key;
+                $table->addColumn($key, fn ($row) => $row->statusJenisBerkas($jenis)
+                    ? '<i class="fas fa-check-circle text-success"></i>'
+                    : '<i class="fas fa-times-circle text-danger"></i>');
+            }
+            return $table->rawColumns($rawColumns)->make(true);
         }
 
-        return view('admin.legal.pengajuan_berkas.index', compact('permissions'));
+        return view('admin.legal.pengajuan_berkas.index', compact('permissions', 'jenisBerkas'));
     }
 
     public function edit($id)
     {
         $list = PersyaratanLegal::with('customer')->findOrFail($id);
+
+        $list->status_berkas = JenisBerkasPengajuan::aktif()->get()->mapWithKeys(fn ($jenis) => [$jenis->id => $list->statusJenisBerkas($jenis)]);
 
         return response()->json([
             'status' => 'success',
@@ -101,30 +70,17 @@ class BerkasPengajuanController extends Controller
     {
         $data = PersyaratanLegal::findOrFail($id);
 
-        $request->validate([
-            'IPH'                => 'required',
-            'SHGB'               => 'required',
-            'SSP'                => 'required',
-            'BPHTB'              => 'required',
-            'SIKUMBANG'          => 'required',
-            'DAFTAR_SIKASEP'     => 'required',
-            'FOTO_SIKASEP'       => 'required',
-            'TRILOGI'            => 'required',
-            'catatan_kekurangan' => 'nullable',
-            'percakapan_wa'      => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
-        ], [
-            'IPH.required'            => 'IPH wajib dipilih!',
-            'SHGB.required'           => 'SHGB wajib dipilih!',
-            'SSP.required'            => 'SSP wajib dipilih!',
-            'BPHTB.required'          => 'BPHTB wajib dipilih!',
-            'SIKUMBANG.required'      => 'SIKUMBANG wajib dipilih!',
-            'DAFTAR_SIKASEP.required' => 'DAFTAR SIKASEP wajib dipilih!',
-            'FOTO_SIKASEP.required'   => 'FOTO SIKASEP wajib dipilih!',
-            'TRILOGI.required'        => 'TRILOGI wajib dipilih!',
-            'percakapan_wa.file'      => 'File percakapan WA harus berupa file!',
-            'percakapan_wa.mimes'     => 'File percakapan WA harus berformat jpeg, png, jpg, atau pdf!',
-            'percakapan_wa.max'       => 'Ukuran file percakapan WA maksimal 2MB!',
-        ]);
+        $jenisBerkas = JenisBerkasPengajuan::aktif()->get();
+        $rules = [
+            'catatan_kekurangan' => 'nullable|string',
+            'percakapan_wa' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ];
+        $attributes = [];
+        foreach ($jenisBerkas as $jenis) {
+            $rules['berkas.' . $jenis->id] = 'required|in:0,1';
+            $attributes['berkas.' . $jenis->id] = $jenis->nama;
+        }
+        $request->validate($rules, [], $attributes);
 
         DB::beginTransaction();
         try {
@@ -140,17 +96,11 @@ class BerkasPengajuanController extends Controller
             }
 
             $data->update([
-                'IPH'                => $request->IPH,
-                'SHGB'               => $request->SHGB,
-                'SSP'                => $request->SSP,
-                'BPHTB'              => $request->BPHTB,
-                'SIKUMBANG'          => $request->SIKUMBANG,
-                'DAFTAR_SIKASEP'     => $request->DAFTAR_SIKASEP,
-                'FOTO_SIKASEP'       => $request->FOTO_SIKASEP,
-                'TRILOGI'            => $request->TRILOGI,
                 'catatan_kekurangan' => $request->catatan_kekurangan ?? '',
                 'percakapan_wa'      => isset($percakapanwaName) ? $percakapanwaName : $data->percakapan_wa,
             ]);
+
+            $data->simpanStatusBerkas($jenisBerkas, $request->input('berkas', []));
 
             $this->logEdit('Berkas Pengajuan', $data->id);
 

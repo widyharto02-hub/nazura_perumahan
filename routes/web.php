@@ -305,6 +305,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('listrik-air-unit', [ListrikAirController::class, 'availableUnits'])->name('listrik-air.units');
         Route::resource('listrik-air', ListrikAirController::class);
         Route::resource('pengajuan-berkas', BerkasPengajuanController::class);
+        Route::resource('jenis-berkas-pengajuan', \App\Http\Controllers\Legal\JenisBerkasPengajuanController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 
     Route::prefix('admin/keuangan')->group(function () {

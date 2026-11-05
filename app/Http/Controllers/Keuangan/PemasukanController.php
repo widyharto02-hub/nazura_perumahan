@@ -5,12 +5,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Pengaturan\HakAksesController;
 use App\Models\Bank;
 use App\Models\KategoriTransaksi;
+use App\Models\LokasiKavling;
 use App\Models\Pemasukan;
 use App\Models\Piutang;
 use App\Traits\LogAktivitasTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class PemasukanController extends Controller
@@ -127,8 +129,9 @@ class PemasukanController extends Controller
         $PiutangList = Piutang::where('status', 1)->where('id_customer', 0)->get();
 
         $bankList = Bank::all();
+        $lokasiList = LokasiKavling::orderBy('nama_kavling')->get();
 
-        return view('admin.keuangan.pemasukan.index', compact('permissions', 'kategoriTransaksi', 'kategoriTransaksiDetail', 'PiutangList', 'bankList'));
+        return view('admin.keuangan.pemasukan.index', compact('permissions', 'kategoriTransaksi', 'kategoriTransaksiDetail', 'PiutangList', 'bankList', 'lokasiList'));
     }
     public function edit($id)
     {
@@ -156,6 +159,7 @@ class PemasukanController extends Controller
             'tanggal'               => 'required|date',
             'nominal'               => 'required',
             'id_bank'               => 'required',
+            'id_lokasi'             => ['required', 'integer', Rule::in(array_merge([0], LokasiKavling::pluck('id')->all()))],
             'lampiran'              => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'id_kategori_transaksi' => 'required',
             'id_piutang'            => 'required_if:id_kategori_transaksi,6',
@@ -164,6 +168,7 @@ class PemasukanController extends Controller
             'tanggal.date'                   => 'Tanggal harus berupa tanggal.',
             'nominal.required'               => 'Nominal wajib diisi.',
             'id_bank.required'               => 'Rekening wajib dipilih.',
+            'id_lokasi.required'             => 'Perumahan wajib dipilih.',
             'lampiran.required'              => 'Lampiran wajib diisi.',
             'lampiran.file'                  => 'Lampiran harus berupa file.',
             'lampiran.mimes'                 => 'Format lampiran harus jpg, jpeg, png, atau pdf.',
@@ -192,6 +197,7 @@ class PemasukanController extends Controller
             'id_invoice'            => 0,
             'id_mutasi'             => 0,
             'id_bank'               => $request->id_bank,
+            'id_lokasi'             => $request->id_lokasi,
             'tanggal'               => $request->tanggal,
             'nominal'               => str_replace('.', '', $request->nominal),
             'id_kategori_transaksi' => $request->id_kategori_transaksi,
@@ -244,6 +250,7 @@ class PemasukanController extends Controller
             'tanggal' => 'required|date',
             'nominal' => 'required',
             'id_bank' => 'required',
+            'id_lokasi' => ['required', 'integer', Rule::in(array_merge([0], LokasiKavling::pluck('id')->all()))],
         ];
 
         if ($request->id_kategori_transaksi == 2) {
@@ -261,6 +268,7 @@ class PemasukanController extends Controller
             'tanggal.date'      => 'Tanggal harus berupa tanggal.',
             'nominal.required'  => 'Nominal wajib diisi.',
             'id_bank.required'  => 'Rekening wajib dipilih.',
+            'id_lokasi.required' => 'Perumahan wajib dipilih.',
             'lampiran.required' => 'Lampiran wajib diisi.',
             'lampiran.file'     => 'Lampiran harus berupa file.',
             'lampiran.mimes'    => 'Format lampiran harus jpg, jpeg, png, atau pdf.',
@@ -270,6 +278,7 @@ class PemasukanController extends Controller
         $db = [
             'tanggal'    => $request->tanggal,
             'id_bank'    => $request->id_bank,
+            'id_lokasi'  => $request->id_lokasi,
             'keterangan' => $request->keterangan ?? '',
             'nominal'    => str_replace('.', '', $request->nominal),
         ];
