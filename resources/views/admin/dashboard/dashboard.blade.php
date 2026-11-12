@@ -123,7 +123,7 @@
                                                 <td>{{ $lokasi['nama'] }}</td>
                                                 <td align="center" class="table-warning">{{ $lokasi['jumlah'] }}</td>
                                                 @foreach ($kolomStatus as $status)
-                                                    @php $key = strtolower(str_replace(' ', '_', $status->short_name)); @endphp
+                                                    @php $key = $status->key; @endphp
                                                     <td align="center">{{ $lokasi[$key] ?? 0 }}</td>
                                                     @if ($status->id == 1)
                                                         <td align="center">{{ $lokasi['hold'] ?? 0 }}</td>
@@ -146,7 +146,7 @@
                                             <th colspan="3" class="text-center">TOTAL</th>
                                             <th class="text-center">{{ $totalSemua['jumlah'] }}</th>
                                             @foreach ($kolomStatus as $status)
-                                                @php $key = strtolower(str_replace(' ', '_', $status->short_name)); @endphp
+                                                @php $key = $status->key; @endphp
                                                 <th class="text-center">{{ $totalSemua[$key] ?? 0 }}</th>
                                                 @if ($status->id == 1)
                                                     <th class="text-center">{{ $totalSemua['hold'] }}</th>

@@ -25,75 +25,45 @@ class DashboardController extends Controller
         Carbon::setLocale('id');
         $tglSekarang   = Carbon::now()->translatedFormat('j F Y');
         $totalKavling  = KavlingPeta::count();
-        $totalCustomer = Customer::count();
-        $merah        = Customer::where('id_status_progres', 2)->count();
+        $totalCustomer = Customer::where('stt_arsip', 0)->count();
         app(\App\Http\Controllers\Transaksi\AkadController::class)->refreshDeadlineAkad();
-        $hijau         = Wawancara::prosesBankAktif()->count();
-        $ungu           = Customer::where('id_status_progres', 3)->count();
+        $salesStats = app(\App\Services\StatistikPenjualanService::class)->get();
+        $merah = $salesStats['totals']['booking'];
+        $hijau = $salesStats['totals']['wawancara'];
+        $ungu = $salesStats['totals']['akad'];
 
-        $kolomStatus = ProgresListPenjualan::where('stt_tampil', 1)
-            ->where('id', '!=', 8)
-            ->orderBy('urutan', 'asc')
-            ->get();
+        $kolomStatus = collect(['tersedia' => 'Tersedia'] + \App\Services\StatistikPenjualanService::LABELS)
+            ->map(fn ($label, $key) => (object) [
+                'id' => $key === 'tersedia' ? 1 : 0,
+                'short_name' => $label,
+                'key' => $key,
+            ])->values();
 
-        $totalSemua = [
-            'jumlah'         => 0,
-            'kpr'            => 0,
-            'cash'           => 0,
-            'kredit'         => 0,
-            'total_customer' => $totalCustomer,
-            'hold'           => 0,
-        ];
+        $dataLokasi = $salesStats['projects']->map(function ($project) {
+            $id = $project['id'];
+            $customers = Customer::where('id_lokasi', $id)->where('stt_arsip', 0);
 
-        foreach ($kolomStatus as $status) {
-            $key              = strtolower(str_replace(' ', '_', $status->short_name));
-            $totalSemua[$key] = 0;
-        }
-
-        $dataLokasi = LokasiKavling::whereIn('stt_tampil', [1, 3])->get()->map(function ($lokasi) use ($kolomStatus, &$totalSemua) {
-
-            $id = $lokasi->id;
-
-            $data = [
-                'id'           => $id,
-                'nama'         => $lokasi->nama_kavling,
-                'jumlah'       => KavlingPeta::where('id_lokasi', $id)->count(),
-                'nama_singk_1' => $lokasi->nama_singkat,
-                'kpr'          => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'KPR')->count(),
-                'cash'         => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Pembelian Cash')->count(),
-                'kredit'       => Customer::where('id_lokasi', $id)->where('jenis_pembelian', 'Cash Bertahap')->count(),
-                'hold'         => KavlingPeta::where('id_lokasi', $id)->where('status', 1)->count(),
+            return $project + [
+                'jumlah' => $project['total_unit'],
+                'nama_singk_1' => $project['kode'],
+                'kpr' => (clone $customers)->where('jenis_pembelian', 'KPR')->count(),
+                'cash' => (clone $customers)->where('jenis_pembelian', 'Pembelian Cash')->count(),
+                'kredit' => (clone $customers)->where('jenis_pembelian', 'Cash Bertahap')->count(),
+                'hold' => KavlingPeta::where('id_lokasi', $id)->where('status', 1)->count(),
+                'tersedia' => KavlingPeta::where('id_lokasi', $id)->where('status', 0)->count(),
             ];
-
-            $totalSemua['jumlah'] += $data['jumlah'];
-            $totalSemua['kpr'] += $data['kpr'];
-            $totalSemua['cash'] += $data['cash'];
-            $totalSemua['kredit'] += $data['kredit'];
-            $totalSemua['hold'] += $data['hold'];
-
-            foreach ($kolomStatus as $status) {
-                $key = strtolower(str_replace(' ', '_', $status->short_name));
-
-                if ($status->id == 1) {
-                    $data[$key] = KavlingPeta::where('id_lokasi', $id)->where('status', 0)->count();
-                } else {
-                    $data[$key] = Customer::where('id_lokasi', $id)
-                        ->where('id_status_progres', $status->id)
-                        ->count();
-                }
-
-                $totalSemua[$key] += $data[$key];
-            }
-
-            return $data;
         });
+        $totalSemua = $salesStats['totals'] + ['total_customer' => $totalCustomer];
+        foreach (['jumlah', 'kpr', 'cash', 'kredit', 'hold', 'tersedia'] as $key) {
+            $totalSemua[$key] = $dataLokasi->sum($key);
+        }
 
         $progresList = ProgresListPenjualan::where('id', '!=', 1)->get();
         $dataProgres = [];
         $noProgres   = 1;
 
         foreach ($progresList as $progres) {
-            $jumlah     = Customer::where('id_status_progres', $progres->id)->count();
+            $jumlah     = Customer::where('stt_arsip', 0)->where('id_status_progres', $progres->id)->count();
             $persentase = $totalCustomer > 0 ? round(($jumlah / $totalCustomer) * 100) : 0;
 
             $dataProgres[] = [
@@ -205,7 +175,7 @@ class DashboardController extends Controller
         $viewData  = [];
 
         if ($routeName === 'dashboard.customer-status-progres-show') {
-            $query    = Customer::where('id_status_progres', $id);
+            $query    = Customer::where('stt_arsip', 0)->where('id_status_progres', $id);
             $getName  = ProgresListPenjualan::find($id);
             $viewData = [
                 'status_progres_id' => $id,

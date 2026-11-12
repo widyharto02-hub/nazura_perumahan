@@ -51,20 +51,23 @@ class PembayaranController extends Controller
                 ->where('stt_arsip', 0)
                 ->orderBy('id', 'desc');
 
-            if ($request->status) {
-                if ($request->status == 'Lunas') {
-                    $data->whereHas('piutangs', function ($q) {
-                        $q->select('id_customer') // jangan pakai *
-                            ->groupBy('id_customer')
-                            ->havingRaw('SUM(sisa_bayar) = 0');
-                    });
-                } elseif ($request->status == 'Terhutang') {
-                    $data->whereHas('piutangs', function ($q) {
-                        $q->select('id_customer')
-                            ->groupBy('id_customer')
-                            ->havingRaw('SUM(sisa_bayar) > 0');
-                    });
+            if (in_array($request->status, ['Lunas', 'Terhutang'], true)) {
+                // Samakan filter dengan total tagihan dan pembayaran yang ditampilkan.
+                $totalTagihan = Piutang::selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereColumn('id_customer', 'customer.id');
+                $totalBayar = Pemasukan::selectRaw('COALESCE(SUM(nominal), 0)')
+                    ->whereColumn('id_customer', 'customer.id')
+                    ->where('keterangan', 'NOT LIKE', 'Biaya ganti nama%');
+
+                if ($request->status === 'Lunas') {
+                    $data->where($totalTagihan, '>', 0);
                 }
+
+                $operator = $request->status === 'Lunas' ? '<=' : '>';
+                $data->whereRaw(
+                    '(' . $totalTagihan->toSql() . ') ' . $operator . ' (' . $totalBayar->toSql() . ')',
+                    array_merge($totalTagihan->getBindings(), $totalBayar->getBindings())
+                );
             }
 
             if ($request->progres) {
