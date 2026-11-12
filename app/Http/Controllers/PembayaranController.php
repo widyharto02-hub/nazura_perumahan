@@ -485,6 +485,9 @@ class PembayaranController extends Controller
             }
         }
 
+        // Logo perusahaan di bawah tanggal, di area tanda tangan.
+        $pdf->Image(public_path('assets/img/nazura-group.png'), 165, 109, 36, 0, 'PNG');
+
         $filename = 'Kwitansi-' . ($pembayaran->no_kwitansi ?? 'draft') . '.pdf';
         $pdf->Output($filename, 'I');
         exit;
