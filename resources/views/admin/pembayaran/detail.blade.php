@@ -1353,14 +1353,14 @@
                     audio.play();
 
                     if (xhr.status === 422) {
-                        let message = xhr.responseJSON.message ?? "Ada inputan yang salah!";
+                        let message = xhr.responseJSON?.message ?? "Ada inputan yang salah!";
                         toastr.error(message, "GAGAL!", {
                             progressBar: true,
                             timeOut: 3500,
                             positionClass: "toast-bottom-right",
                         });
 
-                        let errors = xhr.responseJSON.errors || {};
+                        let errors = xhr.responseJSON?.errors || {};
                         $.each(errors, function(key, val) {
                             let input = $('[name="' + key + '"]');
                             if (!input.length) {
@@ -1374,9 +1374,19 @@
                             );
                         });
                     } else {
-                        toastr.error(idPemasukan ? "Gagal mengupdate pencairan KPR." : "Gagal menambahkan pencairan KPR.", "GAGAL!", {
+                        let message = xhr.responseJSON?.message;
+                        if (!message) {
+                            message = xhr.status === 419
+                                ? "Sesi sudah berakhir. Muat ulang halaman dan login kembali."
+                                : xhr.status === 0
+                                    ? "Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi."
+                                    : "Gagal menyimpan pencairan KPR (HTTP " + xhr.status + "). Muat ulang halaman lalu coba lagi.";
+                        }
+                        toastr.error(message, "GAGAL!", {
+                            escapeHtml: true,
                             progressBar: true,
-                            timeOut: 3500,
+                            timeOut: 10000,
+                            closeButton: true,
                             positionClass: "toast-bottom-right"
                         });
                     }

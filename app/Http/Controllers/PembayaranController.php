@@ -968,12 +968,6 @@ class PembayaranController extends Controller
                 );
             }
 
-            $idKategoriPencairanKpr = Pemasukan::idKategoriPencairanKpr();
-
-            if (! $idKategoriPencairanKpr) {
-                throw new \RuntimeException('Kategori transaksi Pencairan KPR tidak ditemukan.');
-            }
-
             $pemasukan = Pemasukan::create([
                 'tanggal'               => $request->tanggal_pembayaran,
                 'id_customer'           => $id,
@@ -1097,8 +1091,20 @@ class PembayaranController extends Controller
             ], 422);
         }
 
+        $tahap = 'memeriksa kategori transaksi Pencairan KPR';
         DB::beginTransaction();
         try {
+            $idKategoriPencairanKpr = Pemasukan::idKategoriPencairanKpr();
+            if (! $idKategoriPencairanKpr) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kategori transaksi Pencairan KPR belum tersedia. Silakan tambahkan pada menu Kategori Transaksi.',
+                ], 422);
+            }
+
+            $tahap = 'menyimpan data pemasukan pencairan KPR';
             $pemasukan = Pemasukan::create([
                 'tanggal' => $request->tanggal_pencairan,
                 'id_customer' => $id,
@@ -1114,6 +1120,7 @@ class PembayaranController extends Controller
             ]);
 
             foreach ($retensiInput as $retensiId => $nominal) {
+                $tahap = 'menyimpan retensi ID ' . $retensiId;
                 $nilaiRetensi = (int) str_replace('.', '', $nominal ?? 0);
                 if ($nilaiRetensi <= 0) {
                     continue;
@@ -1126,23 +1133,29 @@ class PembayaranController extends Controller
                 ]);
             }
 
+            $tahap = 'mencatat aktivitas pencairan KPR';
             $this->logCreate('Pencairan KPR', $pemasukan->id);
 
+            $tahap = 'menghitung ringkasan pembayaran';
+            $ringkasan = [
+                'jumlah_bayar' => number_format($this->getJumlahBayarCustomer($id), 0, ',', '.'),
+                'total_tagihan' => number_format($this->getTotalTagihanCustomer($id), 0, ',', '.'),
+                'sisa_bayar' => number_format($this->getSisaBayarCustomer($id), 0, ',', '.'),
+            ];
+            $tahap = 'menyelesaikan transaksi pencairan KPR';
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'jumlah_bayar' => number_format($this->getJumlahBayarCustomer($id), 0, ',', '.'),
-                'total_tagihan' => number_format($this->getTotalTagihanCustomer($id), 0, ',', '.'),
-                'sisa_bayar' => number_format($this->getSisaBayarCustomer($id), 0, ',', '.'),
+                ...$ringkasan,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error($e->getMessage());
+            Log::error('Gagal menambahkan pencairan KPR', ['id_customer' => $id, 'tahap' => $tahap, 'exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan pencairan KPR',
+                'message' => 'Gagal menambahkan pencairan KPR pada tahap ' . $tahap . '. Periksa log aplikasi untuk rincian teknis.',
             ], 500);
         }
     }
@@ -1236,6 +1249,7 @@ class PembayaranController extends Controller
             'jumlah_pencairan.required' => 'Jumlah pencairan wajib diisi.',
         ]);
 
+        $tahap = 'memeriksa data pencairan KPR';
         DB::beginTransaction();
         try {
             $pemasukan = Pemasukan::findOrFail($id);
@@ -1261,17 +1275,20 @@ class PembayaranController extends Controller
             }
 
             if ($jumlahPlafon !== ($jumlahPencairan + $totalRetensi)) {
+                DB::rollBack();
                 return response()->json([
                     'message' => 'Jumlah plafon harus sama dengan jumlah pencairan ditambah total retensi.',
                 ], 422);
             }
 
             if ($jumlahPlafon !== (int) ($customer->estimasi_plafon ?? 0)) {
+                DB::rollBack();
                 return response()->json([
                     'message' => 'Jumlah plafon harus sama dengan nilai estimasi plafon pada halaman pembayaran.',
                 ], 422);
             }
 
+            $tahap = 'mengupdate data pemasukan pencairan KPR';
             $pemasukan->update([
                 'tanggal' => $request->tanggal_pencairan,
                 'nominal' => $jumlahPencairan,
@@ -1281,9 +1298,11 @@ class PembayaranController extends Controller
                 'disetujui_owner_oleh' => null,
             ]);
 
+            $tahap = 'mengganti rincian retensi';
             PemasukanRetensi::where('id_pemasukan', $pemasukan->id)->delete();
 
             foreach ($retensiInput as $retensiId => $nominal) {
+                $tahap = 'menyimpan retensi ID ' . $retensiId;
                 $nilaiRetensi = (int) str_replace('.', '', $nominal ?? 0);
                 if ($nilaiRetensi > 0) {
                     PemasukanRetensi::create([
@@ -1294,22 +1313,25 @@ class PembayaranController extends Controller
                 }
             }
 
+            $tahap = 'mencatat aktivitas pencairan KPR';
             $this->logEdit('Pencairan KPR', $pemasukan->id);
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
+            $tahap = 'menghitung ringkasan pembayaran';
+            $ringkasan = [
                 'jumlah_bayar' => number_format($this->getJumlahBayarCustomer($customer->id), 0, ',', '.'),
                 'total_tagihan' => number_format($this->getTotalTagihanCustomer($customer->id), 0, ',', '.'),
                 'sisa_bayar' => number_format($this->getSisaBayarCustomer($customer->id), 0, ',', '.'),
-            ]);
-        } catch (\Exception $e) {
+            ];
+            $tahap = 'menyelesaikan transaksi pencairan KPR';
+            DB::commit();
+
+            return response()->json(['success' => true, ...$ringkasan]);
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error($e->getMessage());
+            Log::error('Gagal mengupdate pencairan KPR', ['id_pemasukan' => $id, 'tahap' => $tahap, 'exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengupdate pencairan KPR',
+                'message' => 'Gagal mengupdate pencairan KPR pada tahap ' . $tahap . '. Periksa log aplikasi untuk rincian teknis.',
             ], 500);
         }
     }
