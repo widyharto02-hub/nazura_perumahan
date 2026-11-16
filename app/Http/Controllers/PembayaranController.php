@@ -474,16 +474,7 @@ class PembayaranController extends Controller
         $pdf->SetXY(173.5, 103.5);
         $pdf->Cell(40, 4.5, $tglPemasukan, 0, 0, 'L');
 
-        if ($pembayaran->disetujui_owner_pada) {
-            $tandaTangan = PengaturanMedia::where('jenis_data', 'Tanda Tangan Owner')
-                ->where('stt_aktif', 1)
-                ->value('nama_file');
-            $tandaTanganPath = $tandaTangan ? public_path('config_media/' . $tandaTangan) : null;
-
-            if ($tandaTanganPath && file_exists($tandaTanganPath)) {
-                $pdf->Image($tandaTanganPath, 153, 89, 50);
-            }
-        }
+        // Tampilan tanda tangan owner dinonaktifkan sementara pada kwitansi.
 
         // Logo perusahaan di bawah tanggal, di area tanda tangan.
         $pdf->Image(public_path('assets/img/nazura-group.png'), 165, 109, 36, 0, 'PNG');
